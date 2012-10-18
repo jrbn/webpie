@@ -1,0 +1,52 @@
+<project name="Webpie" default="build" basedir=".">
+
+	<description>Build file for Webpie</description>
+
+	<property name="jar" location="lib/webpie.jar"/>
+	<property name="JAR_REMOTE_LOCATION" value=""/>
+	<property name="SCP_PRIVATE_KEY" value=""/>
+	<property name="SCP_PASSPHRASE" value=""/>
+	
+
+	<path id="default.classpath">
+		<fileset dir="lib">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+
+	<target name="build" description="build jar file" depends="clean,copy,compile" />
+
+	<target name="copy">
+		<mkdir dir="lib" />
+
+		<copy todir="lib">
+			<fileset dir="external"/>
+		</copy>
+	</target>
+
+	
+	<target name="compile" description="build the examples">
+		<mkdir dir="tmp" />
+
+		<!-- Compile the java code from src into tmp -->
+		<javac srcdir="src" destdir="tmp" debug="on" source="1.6" target="1.6" classpathref="default.classpath">
+			<compilerarg value="-Xlint:unchecked" />
+		</javac>
+
+		<!-- Put everything in tmp into the jar file -->
+		<jar jarfile="${jar}" basedir="tmp" />
+		
+		<!-- And delete the build dir -->
+		<delete dir="tmp" />
+	</target>
+
+	<target name="clean" description="clean up">
+		<delete dir="tmp" />
+		<delete dir="lib" />
+	</target>
+	
+	<target name="deploy" depends="compile" description="Copy the jar in a specific location">
+		<scp file="${JAR_LOCATION}" todir="${JAR_REMOTE_LOCATION}" keyfile="${SCP_PRIVATE_KEY}" passphrase="${SCP_PASSPHRASE}" trust="true"/>
+	</target>
+
+</project>

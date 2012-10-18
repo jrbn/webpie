@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+ <appender class="ch.qos.logback.core.ConsoleAppender" name="console">
+  <layout class="ch.qos.logback.classic.PatternLayout">
+   <pattern>%t %d{HH:mm:ss.SSS} %p %logger{15}: %m%n</pattern>
+  </layout>
+ </appender>
+
+  <root level="warn">
+    <appender-ref ref="console" />
+  </root>
+
+<logger name="org.apache.hadoop.mapred.JobClient">
+	<level value="info" />
+</logger>
+
+<logger name="jobs">
+	<level value="debug" />
+</logger>
+
+<logger name="mappers">
+	<level value="info" />
+</logger>
+
+<logger name="reducers">
+	<level value="info" />
+</logger>
+
+</configuration>
