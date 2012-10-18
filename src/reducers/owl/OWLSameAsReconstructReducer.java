@@ -10,18 +10,16 @@ import utils.NumberUtils;
 import data.Triple;
 import data.TripleSource;
 
-public class OWLSameAsReconstructReducer extends
-		Reducer<BytesWritable, BytesWritable, TripleSource, Triple> {
+public class OWLSameAsReconstructReducer extends Reducer<BytesWritable, BytesWritable, TripleSource, Triple> {
 
 	private TripleSource oKey = new TripleSource();
 	private Triple oValue = new Triple();
 
 	@Override
-	public void reduce(BytesWritable key, Iterable<BytesWritable> values,
-			Context context) throws IOException, InterruptedException {
+	public void reduce(BytesWritable key, Iterable<BytesWritable> values, Context context) throws IOException, InterruptedException {
 		byte[] bKey = key.getBytes();
 		oKey.setStep(NumberUtils.decodeInt(bKey, 8));
-		oKey.setDerivation(bKey[12]);
+		//FIXME: oKey.setDerivation(bKey[12]);
 
 		int elements = 0;
 		Iterator<BytesWritable> itr = values.iterator();
@@ -30,22 +28,22 @@ public class OWLSameAsReconstructReducer extends
 			byte[] bValue = itr.next().getBytes();
 			long resource = NumberUtils.decodeLong(bValue, 1);
 			switch (bValue[0]) {
-			case 0:
-				oValue.setSubject(resource);
-				break;
-			case 1:
-				oValue.setPredicate(resource);
-				break;
-			case 2:
-			case 3:
-				if (bValue[0] == 2)
-					oValue.setObjectLiteral(false);
-				else
-					oValue.setObjectLiteral(true);
-				oValue.setObject(resource);
-				break;
-			default:
-				break;
+				case 0:
+					oValue.setSubject(resource);
+					break;
+				case 1:
+					oValue.setPredicate(resource);
+					break;
+				case 2:
+				case 3:
+					if (bValue[0] == 2)
+						oValue.setObjectLiteral(false);
+					else
+						oValue.setObjectLiteral(true);
+					oValue.setObject(resource);
+					break;
+				default:
+					break;
 			}
 		}
 

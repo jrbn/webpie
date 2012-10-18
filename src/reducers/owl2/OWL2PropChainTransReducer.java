@@ -36,8 +36,8 @@ public class OWL2PropChainTransReducer extends
 		} else {
 			for (BytesWritable value : values) {
 				byte[] bValue = new byte[value.getLength() - 1];
-				System.arraycopy(value.getBytes(), 1, bValue, 0,
-						value.getLength() - 1);
+				System.arraycopy(value.getBytes(), 1, bValue, 0, value
+						.getLength() - 1);
 				if (value.getBytes()[0] == 0) {
 					subjects.add(bValue);
 				} else {

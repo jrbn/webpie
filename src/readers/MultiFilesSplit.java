@@ -20,30 +20,30 @@ public class MultiFilesSplit extends InputSplit implements Writable {
 	private List<Long> starts = new ArrayList<Long>();
 	private List<Long> ends = new ArrayList<Long>();
 	private Set<String> hosts = new HashSet<String>();
-
+	
 	@Override
 	public long getLength() {
 		return totalLength;
 	}
-
+	
 	public long getStart(int i) {
 		return starts.get(i);
 	}
-
+	
 	public long getEnds(int i) {
 		return ends.get(i);
 	}
-
+	
 	public void addFile(FileStatus file, long start, long end, String[] hosts) {
 		list.add(file);
 		starts.add(start);
 		ends.add(end);
 		totalLength += end - start;
-		for (String host : hosts) {
+		for(String host : hosts) {
 			this.hosts.add(host);
 		}
 	}
-
+	
 	public List<FileStatus> getFiles() {
 		return list;
 	}
@@ -60,7 +60,7 @@ public class MultiFilesSplit extends InputSplit implements Writable {
 		list.clear();
 		starts.clear();
 		ends.clear();
-		for (int i = 0; i < numFiles; ++i) {
+		for(int i = 0; i < numFiles; ++i) {
 			FileStatus file = new FileStatus();
 			file.readFields(in);
 			list.add(file);
@@ -73,10 +73,10 @@ public class MultiFilesSplit extends InputSplit implements Writable {
 	public void write(DataOutput out) throws IOException {
 		out.writeLong(totalLength);
 		out.writeInt(list.size());
-
+		
 		Iterator<Long> itrStart = starts.iterator();
-		Iterator<Long> itrEnds = ends.iterator();
-		for (FileStatus file : list) {
+		Iterator<Long> itrEnds = ends.iterator();		
+		for(FileStatus file : list) {
 			file.write(out);
 			out.writeLong(itrStart.next());
 			out.writeLong(itrEnds.next());

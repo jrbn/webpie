@@ -28,7 +28,7 @@ public class OWLChangeDerivationTransitivity extends
 	}
 
 	protected void setup(Context context) throws IOException {
-		currentExecution = context.getConfiguration().getInt(
-				"reasoner.currentExecution", 0);
+		currentExecution = context.getConfiguration()
+				.getInt("reasoner.currentExecution", 0);
 	}
 }

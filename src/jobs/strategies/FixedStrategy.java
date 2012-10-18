@@ -6,7 +6,7 @@ import java.util.List;
 import jobs.blocks.ExecutionBlock;
 
 public class FixedStrategy implements Strategy {
-
+	
 	List<ExecutionBlock> rules = null;
 	Iterator<ExecutionBlock> itr = null;
 	int countRulesWithNoDerivation = 0;
@@ -14,7 +14,7 @@ public class FixedStrategy implements Strategy {
 
 	@Override
 	public ExecutionBlock getNextRule() {
-		if (!itr.hasNext()) { // Start from the beginning
+		if (!itr.hasNext()) { //Start from the beginning
 			itr = rules.iterator();
 		}
 		block = itr.next();

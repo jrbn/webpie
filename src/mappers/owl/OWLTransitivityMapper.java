@@ -8,24 +8,32 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import utils.NumberUtils;
+
+import com.twitter.elephantbird.mapreduce.io.ProtobufWritable;
+
+import data.Tree.ByteResourceNode;
 import data.Triple;
 import data.TripleSource;
 
-public class OWLTransitivityMapper extends
-		Mapper<TripleSource, Triple, BytesWritable, BytesWritable> {
+public class OWLTransitivityMapper
+		extends
+		Mapper<TripleSource, Triple, BytesWritable, ProtobufWritable<ByteResourceNode>> {
 
 	protected static Logger log = LoggerFactory
 			.getLogger(OWLTransitivityMapper.class);
 	byte[] keys = new byte[16];
 	private BytesWritable oKey = new BytesWritable();
-	byte[] values = new byte[17];
-	private BytesWritable oValue = new BytesWritable();
+
+	private ProtobufWritable<ByteResourceNode> oValueContainer = ProtobufWritable
+			.newInstance(ByteResourceNode.class);
+	protected ByteResourceNode.Builder oValue = ByteResourceNode.newBuilder();
 
 	int level = 0;
 	int baseLevel = 0;
 	int minLevel = 0;
 	int maxLevel = 0;
 
+	@Override
 	public void map(TripleSource key, Triple value, Context context)
 			throws IOException, InterruptedException {
 		if (value.getSubject() != value.getObject() && !value.isObjectLiteral()) {
@@ -36,15 +44,14 @@ public class OWLTransitivityMapper extends
 				oKey.set(keys, 0, 16);
 
 				if (!key.isTransitiveActive())
-					values[0] = 1;
+					oValue.setId(1);
 				else
-					values[0] = 0;
+					oValue.setId(0);
 
-				NumberUtils.encodeLong(values, 1, key.getStep());
-				NumberUtils.encodeLong(values, 9, value.getSubject());
-				oValue.set(values, 0, 17);
-
-				context.write(oKey, oValue);
+				oValue.setResource(value.getSubject());
+				oValue.setHistory(key.getHistory());
+				oValueContainer.set(oValue.build());
+				context.write(oKey, oValueContainer);
 			}
 
 			if (key.getStep() > minLevel) {
@@ -53,14 +60,14 @@ public class OWLTransitivityMapper extends
 				oKey.set(keys, 0, 16);
 
 				if (!key.isTransitiveActive())
-					values[0] = 3;
+					oValue.setId(3);
 				else
-					values[0] = 2;
-				NumberUtils.encodeLong(values, 1, key.getStep());
-				NumberUtils.encodeLong(values, 9, value.getObject());
-				oValue.set(values, 0, 17);
+					oValue.setId(2);
 
-				context.write(oKey, oValue);
+				oValue.setHistory(key.getHistory());
+				oValue.setResource(value.getObject());
+				oValueContainer.set(oValue.build());
+				context.write(oKey, oValueContainer);
 			}
 		}
 	}

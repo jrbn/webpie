@@ -44,8 +44,8 @@ public class HashFunctions {
 
 		return hash;
 	}
-
-	public static int JSHashInt(String str) {
+	
+	public static int JSHashInt(String str){
 		long hash = JSHash(str);
 		return (int) (hash ^ (hash >>> 32));
 	}

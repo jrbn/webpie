@@ -14,7 +14,6 @@ public class CleanDuplicatesReducer extends
 	int filterStep = -1;
 	boolean setStep = false;
 	boolean setDerivation = false;
-//	Triple t = new Triple();
 
 	@Override
 	public void reduce(Triple key, Iterable<TripleSource> values,
@@ -25,7 +24,8 @@ public class CleanDuplicatesReducer extends
 		Iterator<TripleSource> itr = values.iterator();
 		while (itr.hasNext() && !isOriginal) {
 			source = itr.next();
-			if (source.getStep() <= filterStep || source.isAlreadyFiltered())
+			if (source.getStep() <= filterStep
+					|| source.isAlreadyFiltered())
 				isOriginal = true;
 		}
 
@@ -34,11 +34,6 @@ public class CleanDuplicatesReducer extends
 				source.setStep(filterStep + 1);
 			if (setDerivation)
 				source.setAlreadyFiltered(true);
-			
-//			t.setSubject(key.subject);
-//			t.setPredicate(key.predicate);
-//			t.setObject(key.object);
-//			t.setObjectLiteral(key.isObjectLiteral);
 			context.write(source, key);
 		}
 	}

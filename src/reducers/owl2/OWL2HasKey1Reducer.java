@@ -28,21 +28,18 @@ public class OWL2HasKey1Reducer extends
 				matchClass = true;
 			} else {
 				if (!sizeSet) {
-					oKey.setSize(NumberUtils.decodeInt(value.getBytes(), 13) * 8);
+					oKey.setSize(NumberUtils.decodeInt(value.getBytes(), 13)*8);
 					sizeSet = true;
 				}
 				int position = NumberUtils.decodeInt(value.getBytes(), 9);
-				System.arraycopy(value.getBytes(), 1, oKey.getBytes(),
-						position * 8, 8);
+				System.arraycopy(value.getBytes(), 1, oKey.getBytes(), position * 8, 8);
 				positions += position + 1;
 			}
 		}
 
-		// sum(n) = 1 + 2 + ... + n
-		// sum(n) == n(n + 1) / 2
-		if (matchClass
-				&& sizeSet
-				&& (positions == (oKey.getLength() / 8 * (oKey.getLength() / 8 + 1)) / 2)) {
+		//sum(n) = 1 + 2 + ... + n
+		//sum(n) == n(n + 1) / 2
+		if (matchClass && sizeSet && (positions == (oKey.getLength() / 8 * (oKey.getLength() / 8 + 1)) / 2)) {
 			context.write(oKey, key);
 		}
 	}

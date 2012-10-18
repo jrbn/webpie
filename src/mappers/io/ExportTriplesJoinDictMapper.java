@@ -1,5 +1,6 @@
 package mappers.io;
 
+
 import java.io.IOException;
 import java.util.Set;
 
@@ -28,8 +29,8 @@ public class ExportTriplesJoinDictMapper extends
 		// Load common resources
 		try {
 			String path = context.getConfiguration().get("commonResources");
-			commonResources = FilesDictReader.readSetCommonResources(
-					context.getConfiguration(), new Path(path));
+			commonResources = FilesDictReader.readSetCommonResources(context
+					.getConfiguration(), new Path(path));
 		} catch (Exception e) {
 		}
 	}

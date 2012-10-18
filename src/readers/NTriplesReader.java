@@ -13,22 +13,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class NTriplesReader extends MultiFilesReader<Text, Text> {
-
+	
 	public class NTriplesRecordReader extends RecordReader<Text, Text> {
 		MultiFilesSplit split = null;
 		TaskAttemptContext context = null;
-
+		
 		private LineRecordReader rr = new LineRecordReader();
 		private Text fileName = new Text();
 		int i = 0;
-
+		
 		@Override
 		public synchronized void close() throws IOException {
 			rr.close();
 		}
 
 		@Override
-		public Text getCurrentKey() throws IOException, InterruptedException {
+		public Text getCurrentKey() throws IOException,
+				InterruptedException {
 			return fileName;
 		}
 
@@ -39,17 +40,16 @@ public class NTriplesReader extends MultiFilesReader<Text, Text> {
 
 		@Override
 		public float getProgress() throws IOException, InterruptedException {
-			return (float) i / (float) split.getFiles().size();
+			return (float)i / (float)split.getFiles().size();
 		}
-
+		
 		private void openNextFile() throws IOException {
-			// Close current record reader
+			//Close current record reader
 			rr.close();
-
+			
 			if (i < split.getFiles().size()) {
 				FileStatus currentFile = split.getFiles().get(i);
-				FileSplit fSplit = new FileSplit(currentFile.getPath(), 0,
-						currentFile.getLen(), null);
+				FileSplit fSplit = new FileSplit(currentFile.getPath(), 0, currentFile.getLen(), null);
 				rr.initialize(fSplit, context);
 				fileName.set(currentFile.getPath().getName());
 				++i;
@@ -59,7 +59,7 @@ public class NTriplesReader extends MultiFilesReader<Text, Text> {
 		@Override
 		public void initialize(InputSplit split, TaskAttemptContext context)
 				throws IOException, InterruptedException {
-			this.split = (MultiFilesSplit) split;
+			this.split = (MultiFilesSplit)split;
 			this.context = context;
 			i = 0;
 			openNextFile();
@@ -71,17 +71,17 @@ public class NTriplesReader extends MultiFilesReader<Text, Text> {
 			while (!(value = rr.nextKeyValue()) && i < split.getFiles().size()) {
 				openNextFile();
 			}
-
+			
 			return value;
 		}
-
+		
 	}
-
+	
 	protected static Logger log = LoggerFactory.getLogger(NTriplesReader.class);
-
+	
 	@Override
-	public RecordReader<Text, Text> createRecordReader(InputSplit split,
-			TaskAttemptContext context) throws IOException,
+	public RecordReader<Text, Text> createRecordReader(
+			InputSplit split, TaskAttemptContext context) throws IOException,
 			InterruptedException {
 		return new NTriplesRecordReader();
 	}

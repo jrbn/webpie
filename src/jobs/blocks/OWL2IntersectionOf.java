@@ -7,6 +7,6 @@ public class OWL2IntersectionOf extends ExecutionBlock {
 	@Override
 	public void performJobs(int executionStep) throws IOException,
 			InterruptedException, ClassNotFoundException {
-		// TODO
+		//TODO
 	}
 }

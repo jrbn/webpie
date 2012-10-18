@@ -39,10 +39,10 @@ public class FilesTriplesWriter extends
 			try {
 				FileOutputCommitter committer = (FileOutputCommitter) getOutputCommitter(context);
 				workingDir = committer.getWorkPath();
-			} catch (Exception e) {
+			} catch (Exception e) {				
 			}
 		}
-
+		
 		public TriplesRecordWriter(TaskAttemptContext context, Path workingDir) {
 			this.context = context;
 			this.workingDir = workingDir;

@@ -26,8 +26,8 @@ public class OWL2BuildLists extends ExecutionBlock {
 			InterruptedException, ClassNotFoundException {
 
 		Job job = getNewJob(
-				"OWL2 reasoner: join rest triples with first triples",
-				pool.toString(), "FILTER_ONLY_FIRST_REST");
+				"OWL2 reasoner: join rest triples with first triples", pool
+						.toString(), "FILTER_ONLY_FIRST_REST");
 		job.getConfiguration().setInt("reasoner.currentExecution",
 				getPreviousExecution());
 		job.setMapperClass(OWL2JoinFirstRestMapper.class);
@@ -42,10 +42,9 @@ public class OWL2BuildLists extends ExecutionBlock {
 		SequenceFileOutputFormat.setCompressOutput(job, true);
 
 		job.waitForCompletion(true);
-		long derivation = job
-				.getCounters()
-				.findCounter("org.apache.hadoop.mapred.Task$Counter",
-						"REDUCE_OUTPUT_RECORDS").getValue();
+		long derivation = job.getCounters().findCounter(
+				"org.apache.hadoop.mapred.Task$Counter",
+				"REDUCE_OUTPUT_RECORDS").getValue();
 
 		FileSystem fs = FileSystem.get(job.getConfiguration());
 		if (derivation == 0) {
@@ -96,9 +95,9 @@ public class OWL2BuildLists extends ExecutionBlock {
 			mergedLists = merges > 0;
 			derivation += merges;
 		}
-
+		
 		if (derivation > 0) {
-			// Filter the duplicates
+			//Filter the duplicates
 			job = new Job();
 			job.getConfiguration().setInt("maptasks", numMapTasks);
 			job.setJobName("Filter duplicated lists " + step);

@@ -20,41 +20,38 @@ import readers.FilesTriplesReader;
 import reducers.io.CheckTripleDistributionReducer;
 
 public class CheckTripleDistribution extends Configured implements Tool {
-
-	private static Logger log = LoggerFactory
-			.getLogger(CheckTripleDistribution.class);
+	
+	private static Logger log = LoggerFactory.getLogger(CheckTripleDistribution.class);
 	private int numMapTasks = 1;
 	private int numReduceTasks = 1;
 	private int partitions = 1;
-
-	public void parseArgs(String[] args) {
-		for (int i = 0; i < args.length; ++i) {
-
+	
+	public void parseArgs(String[] args) {		
+		for(int i=0;i<args.length; ++i) {
+			
 			if (args[i].equalsIgnoreCase("--maptasks")) {
 				numMapTasks = Integer.valueOf(args[++i]);
 			}
-
+			
 			if (args[i].equalsIgnoreCase("--reducetasks")) {
 				numReduceTasks = Integer.valueOf(args[++i]);
 			}
-
+			
 			if (args[i].equalsIgnoreCase("--partitions")) {
 				partitions = Integer.valueOf(args[++i]);
 			}
 		}
-	}
+	}	
 
 	public static void main(String[] args) throws Exception {
-
+		
 		if (args.length < 2) {
-			System.out
-					.println("Usage: CheckTripleDistribution [input dir] [output dir] [options]");
+			System.out.println("Usage: CheckTripleDistribution [input dir] [output dir] [options]");
 			System.exit(0);
 		}
-
+		
 		long time = System.currentTimeMillis();
-		int res = ToolRunner.run(new Configuration(),
-				new CheckTripleDistribution(), args);
+		int res = ToolRunner.run(new Configuration(), new CheckTripleDistribution(), args);
 		log.info("Execution time: " + (System.currentTimeMillis() - time));
 		System.exit(res);
 	}
@@ -66,7 +63,7 @@ public class CheckTripleDistribution extends Configured implements Tool {
 		job.setJobName("Check distribution hashcodes");
 		job.setJarByClass(CheckTripleDistribution.class);
 		FileSystem.get(new Configuration()).delete(new Path(args[1]), true);
-
+		
 		job.setInputFormatClass(FilesTriplesReader.class);
 		FilesTriplesReader.addInputPath(job, new Path(args[0]));
 		job.getConfiguration().setInt("maptasks", numMapTasks);
@@ -81,7 +78,7 @@ public class CheckTripleDistribution extends Configured implements Tool {
 		job.setOutputFormatClass(TextOutputFormat.class);
 		SequenceFileOutputFormat.setOutputPath(job, new Path(args[1]));
 		job.waitForCompletion(true);
-
+		
 		return 0;
 	}
 }

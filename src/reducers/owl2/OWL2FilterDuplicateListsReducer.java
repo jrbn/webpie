@@ -60,19 +60,17 @@ public class OWL2FilterDuplicateListsReducer extends
 
 			if (!different) {
 				byte[] newValue = new byte[value.getLength()];
-				System.arraycopy(value.getBytes(), 0, newValue, 0,
-						value.getLength());
+				System.arraycopy(value.getBytes(), 0, newValue, 0, value.getLength());
 				lists.add(newValue);
 			}
 		}
-
-		// Output all the values in the list
+		
+		//Output all the values in the list
 		NumberUtils.encodeLong(oKey.getBytes(), 0, key.get());
 		Iterator<byte[]> itr3 = lists.iterator();
 		while (itr3.hasNext()) {
 			byte[] value = itr3.next();
-			NumberUtils.encodeLong(oKey.getBytes(), 8,
-					NumberUtils.decodeLong(value, 0));
+			NumberUtils.encodeLong(oKey.getBytes(), 8, NumberUtils.decodeLong(value, 0));
 			oValue.setSize(value.length - 8);
 			System.arraycopy(value, 8, oValue.getBytes(), 0, value.length - 8);
 			context.write(oKey, oValue);

@@ -15,10 +15,10 @@ public class SplitTriplesMapper extends
 	private Random random = new Random();
 
 	protected void map(TripleSource key, Triple value, Context context)
-			throws IOException, InterruptedException {
+			throws IOException, InterruptedException {		
 		int nSplit = random.nextInt(split);
 		key.setStep(nSplit);
-		context.write(key, value);
+		context.write(key, value);		
 	}
 
 	@Override

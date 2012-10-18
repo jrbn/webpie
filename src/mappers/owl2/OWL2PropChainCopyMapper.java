@@ -38,6 +38,6 @@ public class OWL2PropChainCopyMapper extends
 		}
 	}
 
-	protected void setup(Context context) throws IOException {
+	protected void setup(Context context) throws IOException {		
 	}
 }

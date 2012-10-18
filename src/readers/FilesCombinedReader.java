@@ -81,12 +81,12 @@ public class FilesCombinedReader extends
 			} else {
 				Triple triple = tr.getCurrentValue();
 				oValue.setSize(24);
-				NumberUtils.encodeLong(oValue.getBytes(), 0,
-						triple.getSubject());
-				NumberUtils.encodeLong(oValue.getBytes(), 8,
-						triple.getPredicate());
-				NumberUtils.encodeLong(oValue.getBytes(), 16,
-						triple.getObject());
+				NumberUtils.encodeLong(oValue.getBytes(), 0, triple
+						.getSubject());
+				NumberUtils.encodeLong(oValue.getBytes(), 8, triple
+						.getPredicate());
+				NumberUtils
+						.encodeLong(oValue.getBytes(), 16, triple.getObject());
 				return oValue;
 			}
 		}
@@ -108,9 +108,9 @@ public class FilesCombinedReader extends
 
 			if (nextFile < split.getFiles().size()) {
 				FileStatus currentFile = split.getFiles().get(nextFile);
-				FileSplit fSplit = new FileSplit(currentFile.getPath(),
-						split.getStart(nextFile), split.getEnds(nextFile)
-								- split.getStart(nextFile), null);
+				FileSplit fSplit = new FileSplit(currentFile.getPath(), split
+						.getStart(nextFile), split.getEnds(nextFile)
+						- split.getStart(nextFile), null);
 
 				if (currentFile.getPath().toString().indexOf("_dict") == -1) { // Triple
 					tr.initialize(fSplit, context);

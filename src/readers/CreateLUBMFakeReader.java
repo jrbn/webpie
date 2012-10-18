@@ -69,12 +69,13 @@ public class CreateLUBMFakeReader extends FileInputFormat<LongWritable, Text> {
 	public List<InputSplit> getSplits(JobContext job) throws IOException {
 		int numSplits = job.getConfiguration().getInt("maptasks", 1);
 		List<InputSplit> splits = new LinkedList<InputSplit>();
-
-		for (int i = 0; i < numSplits; ++i) {
+		
+		for(int i = 0; i< numSplits; ++i) {
 			splits.add(new FileSplit(new Path("data"), 0, 0, null));
 		}
-
+		
 		return splits;
 	}
 
+	
 }

@@ -21,6 +21,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import utils.NumberUtils;
+import data.Tree.Node.Rule;
+import data.Tree.ResourceNode;
 import data.Triple;
 import data.TripleSource;
 
@@ -31,7 +33,6 @@ public class FilesTriplesReader extends MultiFilesReader<TripleSource, Triple> {
 
 	public class FilesTriplesRecordReader extends
 			RecordReader<TripleSource, Triple> {
-
 		MultiFilesSplit split = null;
 		TaskAttemptContext context = null;
 
@@ -41,8 +42,7 @@ public class FilesTriplesReader extends MultiFilesReader<TripleSource, Triple> {
 
 		@Override
 		public synchronized void close() throws IOException {
-			if (!emptySplit)
-				rr.close();
+			rr.close();
 		}
 
 		@Override
@@ -59,10 +59,6 @@ public class FilesTriplesReader extends MultiFilesReader<TripleSource, Triple> {
 
 		@Override
 		public float getProgress() throws IOException, InterruptedException {
-			if (emptySplit) {
-				return 1;
-			}
-
 			long bytesCurrentFile = Math.round((double) (split.getEnds(Math
 					.max(0, i - 1)) - split.getStart(Math.max(0, i - 1)))
 					* rr.getProgress());
@@ -79,21 +75,13 @@ public class FilesTriplesReader extends MultiFilesReader<TripleSource, Triple> {
 
 			if (i < split.getFiles().size()) {
 				FileStatus currentFile = split.getFiles().get(i);
-				
-//				log.debug("Reading file " + currentFile.getPath().getName()
-//						+ " (" + split.getStart(i) + "," + split.getEnds(i)
-//						+ ")");
-				
 				FileSplit fSplit = new FileSplit(currentFile.getPath(),
 						split.getStart(i),
 						split.getEnds(i) - split.getStart(i), null);
-
 				rr.initialize(fSplit, context);
 				++i;
 			}
 		}
-
-		boolean emptySplit = false;
 
 		@Override
 		public void initialize(InputSplit split, TaskAttemptContext context)
@@ -101,23 +89,16 @@ public class FilesTriplesReader extends MultiFilesReader<TripleSource, Triple> {
 			this.split = (MultiFilesSplit) split;
 			this.context = context;
 			readSoFar = 0;
-			if (this.split.getFiles().size() > 0) {
-				openNextFile();
-				emptySplit = false;
-			} else {
-				emptySplit = true;
-			}
+			openNextFile();
 		}
 
 		@Override
 		public boolean nextKeyValue() throws IOException, InterruptedException {
-			if (emptySplit)
-				return false;
-
 			boolean value = false;
 			while (!(value = rr.nextKeyValue()) && i < split.getFiles().size()) {
 				openNextFile();
 			}
+
 			return value;
 		}
 
@@ -188,6 +169,70 @@ public class FilesTriplesReader extends MultiFilesReader<TripleSource, Triple> {
 	public static Map<Long, Integer> loadTriplesWithStep(String filter,
 			JobContext context) throws IOException {
 		return loadTriplesWithStep(filter, context, false);
+	}
+
+	public static Map<Long, Collection<ResourceNode>> loadCompleteMapIntoMemoryWithInfo(
+			String filter, JobContext context, boolean inverted)
+			throws IOException {
+		return loadCompleteMapIntoMemoryWithInfo(null, filter, context,
+				inverted);
+	}
+
+	public static Map<Long, Collection<ResourceNode>> loadCompleteMapIntoMemoryWithInfo(
+			Rule ruleToExclude, String filter, JobContext context,
+			boolean inverted) throws IOException {
+
+		Map<Long, Collection<ResourceNode>> schemaTriples = new HashMap<Long, Collection<ResourceNode>>();
+
+		TripleSource key = new TripleSource();
+		Triple value = new Triple();
+		List<FileStatus> files = recursiveListStatus(context, filter);
+
+		ResourceNode.Builder rn = ResourceNode.newBuilder();
+		for (FileStatus file : files) {
+			SequenceFile.Reader input = null;
+			FileSystem fs = null;
+			try {
+				fs = file.getPath().getFileSystem(context.getConfiguration());
+				input = new SequenceFile.Reader(fs, file.getPath(),
+						context.getConfiguration());
+				boolean nextTriple = false;
+				do {
+					nextTriple = input.next(key, value);
+					if (nextTriple
+							&& (ruleToExclude == null || key.getRule() != ruleToExclude)) {
+						long tripleKey = 0;
+						long tripleValue = 0;
+
+						if (!inverted) {
+							tripleKey = value.getSubject();
+							tripleValue = value.getObject();
+						} else {
+							tripleKey = value.getObject();
+							tripleValue = value.getSubject();
+						}
+						Collection<ResourceNode> cTriples = schemaTriples
+								.get(tripleKey);
+
+						if (cTriples == null) {
+							cTriples = new ArrayList<ResourceNode>();
+							schemaTriples.put(tripleKey, cTriples);
+						}
+
+						rn.setResource(tripleValue);
+						rn.setHistory(key.getHistory());
+						rn.setStep(key.getStep());
+						cTriples.add(rn.build());
+					}
+				} while (nextTriple);
+			} finally {
+				if (input != null) {
+					input.close();
+				}
+			}
+		}
+
+		return schemaTriples;
 	}
 
 	public static Map<Long, Integer> loadTriplesWithStep(String filter,

@@ -25,12 +25,10 @@ public class OWL2FilterDuplicateListsMapper extends
 
 		oKey.set(start);
 		oValue.setSize(value.getLength() + 8);
-		System.arraycopy(value.getBytes(), 0, oValue.getBytes(), 8,
-				value.getLength());
+		System.arraycopy(value.getBytes(), 0, oValue.getBytes(), 8, value.getLength());
 		NumberUtils.encodeLong(oValue.getBytes(), 0, end);
 		context.write(oKey, oValue);
 	}
 
-	protected void setup(Context context) throws IOException {
-	}
+	protected void setup(Context context) throws IOException { }
 }

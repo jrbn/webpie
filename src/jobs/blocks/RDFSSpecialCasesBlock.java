@@ -32,12 +32,11 @@ public class RDFSSpecialCasesBlock extends ExecutionBlock {
 				+ "/dir-special-props-" + executionStep;
 		configureOutputJob(job, outputDir);
 		job.waitForCompletion(true);
-		setFilteredDerivation(job
-				.getCounters()
-				.findCounter("org.apache.hadoop.mapred.Task$Counter",
-						"REDUCE_OUTPUT_RECORDS").getValue());
+		setFilteredDerivation(job.getCounters().findCounter(
+				"org.apache.hadoop.mapred.Task$Counter",
+				"REDUCE_OUTPUT_RECORDS").getValue());
 		setNotFilteredDerivation(getFilteredDerivation());
-
+		
 		setHasDerived(getFilteredDerivation() > 0);
 	}
 }

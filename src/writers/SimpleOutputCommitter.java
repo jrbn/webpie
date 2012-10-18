@@ -9,16 +9,13 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 public class SimpleOutputCommitter extends OutputCommitter {
 
 	@Override
-	public void abortTask(TaskAttemptContext taskContext) throws IOException {
-	}
+	public void abortTask(TaskAttemptContext taskContext) throws IOException { }
 
 	@Override
-	public void cleanupJob(JobContext jobContext) throws IOException {
-	}
+	public void cleanupJob(JobContext jobContext) throws IOException { }
 
 	@Override
-	public void commitTask(TaskAttemptContext taskContext) throws IOException {
-	}
+	public void commitTask(TaskAttemptContext taskContext) throws IOException { }
 
 	@Override
 	public boolean needsTaskCommit(TaskAttemptContext taskContext)
@@ -27,10 +24,8 @@ public class SimpleOutputCommitter extends OutputCommitter {
 	}
 
 	@Override
-	public void setupJob(JobContext jobContext) throws IOException {
-	}
+	public void setupJob(JobContext jobContext) throws IOException { }
 
 	@Override
-	public void setupTask(TaskAttemptContext taskContext) throws IOException {
-	}
+	public void setupTask(TaskAttemptContext taskContext) throws IOException { }
 }

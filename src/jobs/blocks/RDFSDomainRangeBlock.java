@@ -6,6 +6,7 @@ import mappers.rdfs.RDFSSubPropDomRangeMapper;
 
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Job;
 
@@ -22,7 +23,7 @@ public class RDFSDomainRangeBlock extends ExecutionBlock {
 
 		job.setMapperClass(RDFSSubPropDomRangeMapper.class);
 		job.setMapOutputKeyClass(LongWritable.class);
-		job.setMapOutputValueClass(LongWritable.class);
+		job.setMapOutputValueClass(BytesWritable.class);
 		job.setReducerClass(RDFSSubpropDomRangeReducer.class);
 		String outputDir = pool.toString() + RDFS_NOT_FILTERED_DIR
 				+ "/dir-subprop-domain-range-" + executionStep;

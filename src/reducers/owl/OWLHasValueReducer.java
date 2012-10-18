@@ -6,76 +6,92 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import readers.FilesTriplesReader;
-
-import utils.NumberUtils;
 import utils.TriplesUtils;
+
+import com.twitter.elephantbird.mapreduce.io.ProtobufWritable;
+
+import data.Tree.ByteTwoResourcesNode;
+import data.Tree.Node.Rule;
+import data.Tree.ResourceNode;
 import data.Triple;
 import data.TripleSource;
 
-public class OWLHasValueReducer extends
-		Reducer<LongWritable, BytesWritable, TripleSource, Triple> {
+public class OWLHasValueReducer
+		extends
+		Reducer<LongWritable, ProtobufWritable<ByteTwoResourcesNode>, TripleSource, Triple> {
 
 	protected static Logger log = LoggerFactory
 			.getLogger(OWLHasValueReducer.class);
 
 	private Triple triple = new Triple();
-	private TripleSource source = new TripleSource();
+	private TripleSource sourceHasValue1 = new TripleSource();
+	private TripleSource sourceHasValue2 = new TripleSource();
 
-	private Map<Long, Collection<Long>> hasValueMap = new HashMap<Long, Collection<Long>>();
-	private Map<Long, Collection<Long>> onPropertyMap = new HashMap<Long, Collection<Long>>();
+	private Map<Long, Collection<ResourceNode>> hasValueMap = new HashMap<Long, Collection<ResourceNode>>();
+	private Map<Long, Collection<ResourceNode>> onPropertyMap = new HashMap<Long, Collection<ResourceNode>>();
 
-	private Map<Long, Collection<Long>> hasValue2Map = new HashMap<Long, Collection<Long>>();
-	private Map<Long, Collection<Long>> onProperty2Map = new HashMap<Long, Collection<Long>>();
+	private Map<Long, Collection<ResourceNode>> hasValue2Map = new HashMap<Long, Collection<ResourceNode>>();
+	private Map<Long, Collection<ResourceNode>> onProperty2Map = new HashMap<Long, Collection<ResourceNode>>();
 
-	public void reduce(LongWritable key, Iterable<BytesWritable> values,
+	@Override
+	public void reduce(LongWritable key,
+			Iterable<ProtobufWritable<ByteTwoResourcesNode>> values,
 			Context context) throws IOException, InterruptedException {
 
-		Iterator<BytesWritable> itr = values.iterator();
-		while (itr.hasNext()) {
-			byte[] v = itr.next().getBytes();
-			if (v.length > 0) {
-				if (v[0] == 0) { // Rule 14b
-					long object = NumberUtils.decodeLong(v, 1);
-					Collection<Long> props = onPropertyMap.get(object);
-					if (props != null) {
-						Collection<Long> hasValues = hasValueMap.get(object);
-						if (hasValues != null) {
-							triple.setSubject(key.get());
-							Iterator<Long> itr2 = props.iterator();
-							while (itr2.hasNext()) {
-								long prop = itr2.next();
-								triple.setPredicate(prop);
-								Iterator<Long> itr3 = hasValues.iterator();
-								while (itr3.hasNext()) {
-									long value = itr3.next();
-									triple.setObject(value);
-									context.write(source, triple);
-								}
+		for (ProtobufWritable<ByteTwoResourcesNode> value : values) {
+			value.setConverter(ByteTwoResourcesNode.class);
+			ByteTwoResourcesNode btn = value.get();
+			if (btn.getId() == 0) { // Rule 14b
+				long object = btn.getResource1();
+				Collection<ResourceNode> props = onPropertyMap.get(object);
+				if (props != null) {
+					Collection<ResourceNode> hasValues = hasValueMap.get(object);
+					if (hasValues != null) {
+						triple.setSubject(key.get());
+						Iterator<ResourceNode> itr2 = props.iterator();
+						while (itr2.hasNext()) {
+							ResourceNode itr2value = itr2.next();
+							long prop = itr2value.getResource();
+							triple.setPredicate(prop);
+							Iterator<ResourceNode> itr3 = hasValues.iterator();
+							while (itr3.hasNext()) {
+								ResourceNode itr3value = itr3.next();
+								long v = itr3value.getResource();
+								triple.setObject(v);
+								sourceHasValue1.clearChildren();
+								sourceHasValue1.addChild(btn.getHistory());
+								sourceHasValue1.addChild(itr2value.getHistory());
+								sourceHasValue1.addChild(itr3value.getHistory());
+								context.write(sourceHasValue1, triple);
 							}
 						}
 					}
-				} else { // Rule 14a
-					long predicate = NumberUtils.decodeLong(v, 1);
-					long object = NumberUtils.decodeLong(v, 9);
+				}
+			} else { // Rule 14a
+				long predicate = btn.getResource1();
+				long object = btn.getResource2();
 
-					Collection<Long> types = hasValue2Map.get(object);
-					Collection<Long> pred = onProperty2Map.get(predicate);
-					if (types != null && pred != null) {
-						types.retainAll(pred);
-						Iterator<Long> itr4 = types.iterator();
-						triple.setSubject(key.get());
-						triple.setPredicate(TriplesUtils.RDF_TYPE);
-						while (itr4.hasNext()) {
-							long type = itr4.next();
-							triple.setObject(type);
-							context.write(source, triple);
+				Collection<ResourceNode> types = hasValue2Map.get(object);
+				Collection<ResourceNode> pred = onProperty2Map.get(predicate);
+				if (types != null && pred != null) {
+					triple.setSubject(key.get());
+					triple.setPredicate(TriplesUtils.RDF_TYPE);
+					for(ResourceNode type : types) {
+						for(ResourceNode p : pred) {
+							if (type.getResource() == p.getResource()) {
+								triple.setObject(type.getResource());
+								sourceHasValue2.clearChildren();
+								sourceHasValue2.addChild(btn.getHistory());
+								sourceHasValue2.addChild(type.getHistory());
+								sourceHasValue2.addChild(p.getHistory());
+								context.write(sourceHasValue2, triple);
+							}
 						}
 					}
 				}
@@ -83,20 +99,27 @@ public class OWLHasValueReducer extends
 		}
 	}
 
+	@Override
 	public void setup(Context context) throws IOException {
-		source.setDerivation(TripleSource.OWL_RULE_14A);
-		source.setStep(context.getConfiguration().getInt("reasoner.step", 0));
+		sourceHasValue1.setRule(Rule.OWL_HAS_VALUE1);
+		sourceHasValue1.setStep(context.getConfiguration().getInt(
+				"reasoner.step", 0));
+
+		sourceHasValue2.setRule(Rule.OWL_HAS_VALUE2);
+		sourceHasValue2.setStep(context.getConfiguration().getInt(
+				"reasoner.step", 0));
+
 		triple.setObjectLiteral(false);
 
 		// Load the schema triples
-		hasValueMap = FilesTriplesReader.loadMapIntoMemory(
-				"FILTER_ONLY_OWL_HAS_VALUE", context);
-		onPropertyMap = FilesTriplesReader.loadMapIntoMemory(
-				"FILTER_ONLY_OWL_ON_PROPERTY", context);
+		hasValueMap = FilesTriplesReader.loadCompleteMapIntoMemoryWithInfo(
+				"FILTER_ONLY_OWL_HAS_VALUE", context, false);
+		onPropertyMap = FilesTriplesReader.loadCompleteMapIntoMemoryWithInfo(
+				"FILTER_ONLY_OWL_ON_PROPERTY", context, false);
 
-		hasValue2Map = FilesTriplesReader.loadMapIntoMemory(
+		hasValue2Map = FilesTriplesReader.loadCompleteMapIntoMemoryWithInfo(
 				"FILTER_ONLY_OWL_HAS_VALUE", context, true);
-		onProperty2Map = FilesTriplesReader.loadMapIntoMemory(
+		onProperty2Map = FilesTriplesReader.loadCompleteMapIntoMemoryWithInfo(
 				"FILTER_ONLY_OWL_ON_PROPERTY", context, true);
 	}
 }

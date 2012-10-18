@@ -7,11 +7,12 @@ import mappers.rdfs.RDFSSubclasMapper;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Counter;
 import org.apache.hadoop.mapreduce.Job;
 
 import reducers.rdfs.RDFSSubclasReducer;
+
+import com.twitter.elephantbird.mapreduce.io.ProtobufWritable;
 
 public class RDFSSubclassBlock extends ExecutionBlock {
 
@@ -19,21 +20,21 @@ public class RDFSSubclassBlock extends ExecutionBlock {
 	public void performJobs(int executionStep) throws IOException,
 			InterruptedException, ClassNotFoundException {
 
-		Job job = getNewJob("RDFS subclass reasoning. Step " + executionStep,
-				pool.toString(), "FILTER_ONLY_TYPE_SUBCLASS");
+		Job job = getNewJob(
+				"RDFS subclass reasoning. Step " + executionStep, pool
+						.toString(), "FILTER_ONLY_TYPE_SUBCLASS");
 
 		job.setMapperClass(RDFSSubclasMapper.class);
 		job.setMapOutputKeyClass(BytesWritable.class);
-		job.setMapOutputValueClass(LongWritable.class);
+		job.setMapOutputValueClass(ProtobufWritable.class);
 		job.setReducerClass(RDFSSubclasReducer.class);
 		String outputDir = pool.toString() + RDFS_OUTPUT_DIR + "/dir-subclass-"
 				+ executionStep;
 		configureOutputJob(job, outputDir);
 		job.waitForCompletion(true);
-		setFilteredDerivation(job
-				.getCounters()
-				.findCounter("org.apache.hadoop.mapred.Task$Counter",
-						"REDUCE_OUTPUT_RECORDS").getValue());
+		setFilteredDerivation(job.getCounters().findCounter(
+				"org.apache.hadoop.mapred.Task$Counter",
+				"REDUCE_OUTPUT_RECORDS").getValue());
 		setNotFilteredDerivation(getFilteredDerivation());
 
 		// Check whether it makes sense to launch special block

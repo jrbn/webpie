@@ -1,30 +1,30 @@
 package mappers.owl;
 
+
 import java.io.IOException;
 import java.util.Map;
 
-import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import readers.FilesTriplesReader;
-
-import utils.NumberUtils;
 import utils.TriplesUtils;
+
+import com.twitter.elephantbird.mapreduce.io.ProtobufWritable;
+
+import data.Tree.ByteTwoResourcesNode;
 import data.Triple;
 import data.TripleSource;
 
 public class OWLHasValueMapper extends
-		Mapper<TripleSource, Triple, LongWritable, BytesWritable> {
+		Mapper<TripleSource, Triple, LongWritable, ProtobufWritable<ByteTwoResourcesNode>> {
 
 	protected static Logger log = LoggerFactory
 			.getLogger(OWLHasValueMapper.class);
 
 	private LongWritable oKey = new LongWritable();
-	private BytesWritable oValue = new BytesWritable();
-	private byte[] values = new byte[17];
 
 	private Map<Long, Integer> hasValue = null;
 	private Map<Long, Integer> hasValueInverted = null;
@@ -32,6 +32,11 @@ public class OWLHasValueMapper extends
 	private Map<Long, Integer> onPropertyInverted = null;
 	private int previousStep = -1;
 
+	private ProtobufWritable<ByteTwoResourcesNode> oValueContainer = ProtobufWritable
+			.newInstance(ByteTwoResourcesNode.class);
+	protected ByteTwoResourcesNode.Builder oValue = ByteTwoResourcesNode.newBuilder();
+
+	@Override
 	public void map(TripleSource key, Triple value, Context context)
 			throws IOException, InterruptedException {
 
@@ -46,29 +51,32 @@ public class OWLHasValueMapper extends
 					key.getStep()) < previousStep - 1)
 				return;
 
-			values[0] = 0;
-			NumberUtils.encodeLong(values, 1, value.getObject());
-			oValue.set(values, 0, 9);
-			context.write(oKey, oValue);
+			oValue.setId(0);
+			oValue.setResource1(value.getObject());
+			oValue.setHistory(key.getHistory());
+			oValueContainer.set(oValue.build());
+			context.write(oKey, oValueContainer);
+
 		} else if (value.getPredicate() != TriplesUtils.RDF_TYPE
 				&& hasValueInverted.containsKey(value.getObject())
 				&& onPropertyInverted.containsKey(value.getPredicate())) {
 
 			int schemaHasValueStep = hasValueInverted.get(value.getObject());
-			int schemaOnPropertyStep = onPropertyInverted.get(value
-					.getPredicate());
+			int schemaOnPropertyStep = onPropertyInverted.get(value.getPredicate());
 			if (Math.max(Math.max(schemaHasValueStep, schemaOnPropertyStep),
 					key.getStep()) < previousStep - 1)
 				return;
 
-			values[0] = 1;
-			NumberUtils.encodeLong(values, 1, value.getPredicate());
-			NumberUtils.encodeLong(values, 9, value.getObject());
-			oValue.set(values, 0, 17);
-			context.write(oKey, oValue);
+			oValue.setId(1);
+			oValue.setResource1(value.getPredicate());
+			oValue.setResource2(value.getObject());
+			oValue.setHistory(key.getHistory());
+			oValueContainer.set(oValue.build());
+			context.write(oKey, oValueContainer);
 		}
 	}
 
+	@Override
 	public void setup(Context context) throws IOException {
 		previousStep = context.getConfiguration().getInt(
 				"reasoner.previousStep", -1);

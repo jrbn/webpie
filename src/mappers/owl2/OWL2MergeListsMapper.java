@@ -27,18 +27,17 @@ public class OWL2MergeListsMapper extends
 		oValue.setSize(value.getLength() + 9);
 		oValue.getBytes()[0] = 0;
 		NumberUtils.encodeLong(oValue.getBytes(), 1, end);
-		System.arraycopy(value.getBytes(), 0, oValue.getBytes(), 9,
-				value.getLength());
+		System.arraycopy(value.getBytes(), 0, oValue.getBytes(), 9, value
+				.getLength());
 		context.write(oKey, oValue);
 
 		oKey.set(end);
 		oValue.getBytes()[0] = 1;
 		NumberUtils.encodeLong(oValue.getBytes(), 1, start);
-		System.arraycopy(value.getBytes(), 0, oValue.getBytes(), 9,
-				value.getLength());
+		System.arraycopy(value.getBytes(), 0, oValue.getBytes(), 9, value
+				.getLength());
 		context.write(oKey, oValue);
 	}
 
-	protected void setup(Context context) throws IOException {
-	}
+	protected void setup(Context context) throws IOException { }
 }

@@ -21,14 +21,14 @@ public class OWL2JoinFirstRestMapper extends
 	private int currentExecution = -1;
 	protected LongWritable oKey = new LongWritable();
 	protected BytesWritable oValue = new BytesWritable();
-
+	
 	public void map(TripleSource key, Triple value, Context context)
 			throws IOException, InterruptedException {
 		if (key.getStep() > currentExecution) {
 			oKey.set(value.getSubject());
 			if (value.getPredicate() == TriplesUtils.RDF_FIRST) {
 				oValue.getBytes()[0] = 0;
-			} else { // RDF:REST
+			} else { //RDF:REST
 				oValue.getBytes()[0] = 1;
 			}
 			NumberUtils.encodeLong(oValue.getBytes(), 1, value.getObject());

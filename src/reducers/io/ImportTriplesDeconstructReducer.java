@@ -27,6 +27,7 @@ public class ImportTriplesDeconstructReducer extends
 	private BytesWritable tripleValue = new BytesWritable();
 	private BytesWritable dictValue = new BytesWritable();
 
+	@Override
 	public void reduce(Text key, Iterable<LongWritable> values, Context context)
 			throws IOException, InterruptedException {
 		if (key.toString().startsWith("@FAKE")) {
@@ -85,22 +86,20 @@ public class ImportTriplesDeconstructReducer extends
 					context.write(oKey, tripleValue);
 				}
 			} else {
-				for (LongWritable value : values) {
+				for(LongWritable value : values) {
 					tripleValue.setSize(9);
 					tripleValue.getBytes()[8] = 0;
-					NumberUtils.encodeLong(tripleValue.getBytes(), 0,
-							value.get());
+					NumberUtils.encodeLong(tripleValue.getBytes(), 0, value.get());
 					context.write(oKey, tripleValue);
 				}
 			}
 		}
 	}
 
+	@Override
 	protected void setup(Context context) throws IOException,
 			InterruptedException {
-		String sTaskId = context
-				.getConfiguration()
-				.get("mapred.task.id")
+		String sTaskId = context.getConfiguration().get("mapred.task.id")
 				.substring(
 						context.getConfiguration().get("mapred.task.id")
 								.indexOf("_r_") + 3);
@@ -117,7 +116,7 @@ public class ImportTriplesDeconstructReducer extends
 	@Override
 	protected void cleanup(Context context) throws IOException,
 			InterruptedException {
-		context.getCounter("counter-" + taskId,
-				Long.toString(counter & Integer.MAX_VALUE)).increment(1);
+		/*context.getCounter("counter-" + taskId,
+				Long.toString(counter & Integer.MAX_VALUE)).increment(1);*/
 	}
 }

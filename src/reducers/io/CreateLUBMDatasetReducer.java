@@ -22,6 +22,5 @@ public class CreateLUBMDatasetReducer extends
 	@Override
 	public void setup(Context context) {
 		source.setStep(0);
-		source.setDerivation((byte) 0);
 	}
 }

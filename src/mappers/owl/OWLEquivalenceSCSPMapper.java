@@ -4,26 +4,30 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import readers.FilesTriplesReader;
-import utils.NumberUtils;
 import utils.TriplesUtils;
+
+import com.twitter.elephantbird.mapreduce.io.ProtobufWritable;
+
+import data.Tree.ByteResourceNode;
 import data.Triple;
 import data.TripleSource;
 
-public class OWLEquivalenceSCSPMapper extends
-		Mapper<TripleSource, Triple, LongWritable, BytesWritable> {
+public class OWLEquivalenceSCSPMapper
+		extends
+		Mapper<TripleSource, Triple, LongWritable, ProtobufWritable<ByteResourceNode>> {
 
 	protected static Logger log = LoggerFactory
 			.getLogger(OWLEquivalenceSCSPMapper.class);
 	private LongWritable oKey = new LongWritable();
-	private BytesWritable oValue = new BytesWritable();
-	private byte[] bValues = new byte[17];
+	private ProtobufWritable<ByteResourceNode> oValueContainer = ProtobufWritable
+			.newInstance(ByteResourceNode.class);
+	protected ByteResourceNode.Builder oValue = ByteResourceNode.newBuilder();
 
 	private static Set<Long> subclassSchemaTriples = null;
 	private static Set<Long> subpropSchemaTriples = null;
@@ -35,42 +39,43 @@ public class OWLEquivalenceSCSPMapper extends
 			return;
 
 		oKey.set(value.getSubject());
-		NumberUtils.encodeLong(bValues, 1, value.getObject());
+		oValue.setResource(value.getObject());
+		oValue.setHistory(key.getHistory());
 
-		if (value.getPredicate() == TriplesUtils.RDFS_SUBCLASS
-				&& subclassSchemaTriples.contains(value.getObject())) {
-			bValues[0] = 0;
-			oValue.set(bValues, 0, 9);
-			context.write(oKey, oValue);
-		}
-
-		if (value.getPredicate() == TriplesUtils.OWL_EQUIVALENT_CLASS) {
-			bValues[0] = 2;
-			oValue.set(bValues, 0, 9);
-			context.write(oKey, oValue);
-
-			oKey.set(value.getObject());
-			NumberUtils.encodeLong(bValues, 1, value.getSubject());
-			oValue.set(bValues, 0, 9);
-			context.write(oKey, oValue);
+		if (value.getPredicate() == TriplesUtils.RDFS_SUBCLASS/*
+				&& subclassSchemaTriples.contains(value.getObject())*/) {
+			oValue.setId(0);
+			oValueContainer.set(oValue.build());
+			context.write(oKey, oValueContainer);
 		}
 
 		if (value.getPredicate() == TriplesUtils.RDFS_SUBPROPERTY
 				&& subpropSchemaTriples.contains(value.getObject())) {
-			bValues[0] = 1;
-			oValue.set(bValues, 0, 9);
-			context.write(oKey, oValue);
+			oValue.setId(1);
+			oValueContainer.set(oValue.build());
+			context.write(oKey, oValueContainer);
+		}
+
+		if (value.getPredicate() == TriplesUtils.OWL_EQUIVALENT_CLASS) {
+			oValue.setId(2);
+			oValueContainer.set(oValue.build());
+			context.write(oKey, oValueContainer);
+
+			oKey.set(value.getObject());
+			oValue.setResource(value.getSubject());
+			oValueContainer.set(oValue.build());
+			context.write(oKey, oValueContainer);
 		}
 
 		if (value.getPredicate() == TriplesUtils.OWL_EQUIVALENT_PROPERTY) {
-			bValues[0] = 3;
-			oValue.set(bValues, 0, 9);
-			context.write(oKey, oValue);
+			oValue.setId(3);
+			oValueContainer.set(oValue.build());
+			context.write(oKey, oValueContainer);
 
 			oKey.set(value.getObject());
-			NumberUtils.encodeLong(bValues, 1, value.getSubject());
-			oValue.set(bValues, 0, 9);
-			context.write(oKey, oValue);
+			oValue.setResource(value.getSubject());
+			oValueContainer.set(oValue.build());
+			context.write(oKey, oValueContainer);
 		}
 	}
 

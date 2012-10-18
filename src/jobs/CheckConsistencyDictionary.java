@@ -22,14 +22,13 @@ import readers.NTriplesReader;
 import reducers.io.CheckConsistencyCompressionReducer;
 
 public class CheckConsistencyDictionary extends Configured implements Tool {
-
-	private static Logger log = LoggerFactory
-			.getLogger(CheckConsistencyDictionary.class);
+	
+	private static Logger log = LoggerFactory.getLogger(CheckConsistencyDictionary.class);
 	private int numReduceTasks = 1;
 	private int numMapTasks = -1;
-
-	public void parseArgs(String[] args) {
-		for (int i = 0; i < args.length; ++i) {
+	
+	public void parseArgs(String[] args) {		
+		for(int i=0;i<args.length; ++i) {
 			if (args[i].equalsIgnoreCase("--maptasks")) {
 				numMapTasks = Integer.valueOf(args[++i]);
 			}
@@ -38,18 +37,16 @@ public class CheckConsistencyDictionary extends Configured implements Tool {
 				numReduceTasks = Integer.valueOf(args[++i]);
 			}
 		}
-	}
+	}	
 
 	public static void main(String[] args) throws Exception {
-
+		
 		if (args.length < 2) {
-			System.out
-					.println("Usage: CheckConsistencyDictionary [pool] [output]");
+			System.out.println("Usage: CheckConsistencyDictionary [pool] [output]");
 			System.exit(0);
 		}
-
-		int res = ToolRunner.run(new Configuration(),
-				new CheckConsistencyDictionary(), args);
+		
+		int res = ToolRunner.run(new Configuration(), new CheckConsistencyDictionary(), args);
 		log.info("The compression is consistent!");
 		System.exit(res);
 	}
@@ -57,7 +54,7 @@ public class CheckConsistencyDictionary extends Configured implements Tool {
 	@Override
 	public int run(String[] args) throws Exception {
 		parseArgs(args);
-
+		
 		Job job = new Job();
 		job.setJobName("Checking consistency");
 

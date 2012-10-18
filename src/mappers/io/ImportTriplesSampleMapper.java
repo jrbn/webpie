@@ -26,8 +26,8 @@ public class ImportTriplesSampleMapper extends
 
 			if (key.getBytes()[0] == 0) {
 				String sKey = new String(key.getBytes(), 1, key.getLength() - 1);
-				String sValue = new String(value.getBytes(), 0,
-						value.getLength());
+				String sValue = new String(value.getBytes(), 0, value
+						.getLength());
 				String[] uris = TriplesUtils.parseTriple(sValue, sKey,
 						rewriteNodes);
 				for (String uri : uris) {
@@ -39,7 +39,7 @@ public class ImportTriplesSampleMapper extends
 					}
 				}
 			} else {
-				oKey.set(new String(value.getBytes(), 0, value.getLength()));
+				oKey.set(new String(value.getBytes(), 0 , value.getLength()));
 				oValue.set(NumberUtils.decodeLong(key.getBytes(), 1));
 				context.write(oKey, oValue);
 			}

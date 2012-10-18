@@ -43,7 +43,8 @@ public class SplitTriples extends Configured implements Tool {
 		}
 
 		long time = System.currentTimeMillis();
-		int res = ToolRunner.run(new Configuration(), new SplitTriples(), args);
+		int res = ToolRunner.run(new Configuration(), new SplitTriples(),
+				args);
 		log.info("Execution time: " + (System.currentTimeMillis() - time));
 		System.exit(res);
 	}

@@ -1,5 +1,6 @@
 package mappers.io;
 
+
 import java.io.IOException;
 import java.util.Map;
 import java.util.Random;
@@ -29,15 +30,12 @@ public class ImportTriplesDeconstructMapper extends
 	private Random random = new Random();
 	boolean rewriteBlankNodes = true;
 
-	protected void map(BytesWritable key, BytesWritable value, Context context)
-			throws IOException, InterruptedException {
+	protected void map(BytesWritable key, BytesWritable value, Context context) throws IOException, InterruptedException {
 		if (key.getBytes()[0] == 0) {
 			try {
 				String sKey = new String(key.getBytes(), 1, key.getLength() - 1);
-				String sValue = new String(value.getBytes(), 0,
-						value.getLength());
-				String nodes[] = TriplesUtils.parseTriple(sValue, sKey,
-						rewriteBlankNodes);
+				String sValue = new String(value.getBytes(), 0, value.getLength());
+				String nodes[] = TriplesUtils.parseTriple(sValue, sKey, rewriteBlankNodes);
 				// Assign unique id to triple
 				long id = counter++;
 				// Return single nodes
@@ -66,7 +64,7 @@ public class ImportTriplesDeconstructMapper extends
 				context.setStatus("Failed parsing triple");
 				log.error(e.getMessage());
 			}
-		} else { // Dictionary
+		} else { //Dictionary
 			oKey.set(new String(value.getBytes(), 0, value.getLength()));
 			long id = NumberUtils.decodeLong(key.getBytes(), 1);
 			oValue.set(id * -1);
@@ -77,9 +75,7 @@ public class ImportTriplesDeconstructMapper extends
 	protected void setup(Context context) throws IOException,
 			InterruptedException {
 		// Init the counter
-		String taskId = context
-				.getConfiguration()
-				.get("mapred.task.id")
+		String taskId = context.getConfiguration().get("mapred.task.id")
 				.substring(
 						context.getConfiguration().get("mapred.task.id")
 								.indexOf("_m_") + 3);

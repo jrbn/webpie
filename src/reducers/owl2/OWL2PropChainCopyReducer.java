@@ -34,7 +34,7 @@ public class OWL2PropChainCopyReducer extends
 
 	@Override
 	public void setup(Context context) throws IOException {
-		oKey.setDerivation(TripleSource.OWL2_RULE_PROPAXIOM);
+		//FIXME: oKey.setDerivation(TripleSource.OWL2_RULE_PROPAXIOM);
 		oKey.setStep(context.getConfiguration().getInt(
 				"reasoner.derivationStep", 0));
 	}

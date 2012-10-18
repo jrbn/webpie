@@ -1,5 +1,6 @@
 package mappers.owl;
 
+
 import java.io.IOException;
 import java.util.Map;
 
@@ -27,8 +28,7 @@ public class OWLExtractTransitivityTriples extends
 
 		if (schemaTransitiveProperties.containsKey(value.getPredicate())) {
 
-			int schemaStep = schemaTransitiveProperties.get(value
-					.getPredicate());
+			int schemaStep = schemaTransitiveProperties.get(value.getPredicate());
 			if (Math.max(schemaStep, key.getStep()) < previousExecution) {
 				key.setTransitivityActive(false);
 			} else {

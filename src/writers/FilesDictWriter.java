@@ -40,17 +40,17 @@ public class FilesDictWriter extends
 		}
 		// get the path of the temporary output file
 		FileOutputCommitter committer = (FileOutputCommitter) getOutputCommitter(context);
-		Path fileNew = new Path(committer.getWorkPath(), "new/"
-				+ getUniqueFile(context, "table", ""));
-		Path fileOld = new Path(committer.getWorkPath(), "old/"
-				+ getUniqueFile(context, "table", ""));
+		Path fileNew = new Path(committer.getWorkPath(), "new/" + getUniqueFile(context, "table", ""));
+		Path fileOld = new Path(committer.getWorkPath(), "old/" + getUniqueFile(context, "table", ""));
 		FileSystem fs = fileOld.getFileSystem(conf);
-		final SequenceFile.Writer outOld = SequenceFile.createWriter(fs, conf,
-				fileOld, context.getOutputKeyClass(),
-				context.getOutputValueClass(), compressionType, codec, context);
-		final SequenceFile.Writer outNew = SequenceFile.createWriter(fs, conf,
-				fileNew, context.getOutputKeyClass(),
-				context.getOutputValueClass(), compressionType, codec, context);
+		final SequenceFile.Writer outOld = SequenceFile
+				.createWriter(fs, conf, fileOld, context.getOutputKeyClass(),
+						context.getOutputValueClass(), compressionType, codec,
+						context);
+		final SequenceFile.Writer outNew = SequenceFile
+				.createWriter(fs, conf, fileNew, context.getOutputKeyClass(),
+						context.getOutputValueClass(), compressionType, codec,
+						context);
 
 		return new RecordWriter<LongWritable, BytesWritable>() {
 

@@ -28,10 +28,10 @@ public class ImportTriplesSampleReducer extends
 	protected void cleanup(Context context) throws IOException,
 			InterruptedException {
 		// Save the current counter
-		context.getCounter("counter-" + taskId, Long.toString(counter & 8191))
-				.increment(1); // Logical AND with first 13 bits
+		//context.getCounter("counters", "counter-" + taskId).increment((counter & 8191));
 	}
 
+	@Override
 	public void reduce(Text key, Iterable<LongWritable> values, Context context)
 			throws IOException, InterruptedException {
 		long count = 0;
@@ -66,19 +66,18 @@ public class ImportTriplesSampleReducer extends
 				oValue.getBytes()[text.length] = 1;
 			}
 			context.write(oKey, oValue);
-			context.getCounter("output", "records").increment(1);
+			/*context.getCounter("output", "records").increment(1);
 			context.getCounter("output", "dictionarySize").increment(
-					text.length + 8);
+					text.length + 8);*/
 		}
 	}
 
+	@Override
 	protected void setup(Context context) throws IOException,
 			InterruptedException {
 		threshold = context.getConfiguration().getInt("reasoner.threshold", 0);
 		// Set counter
-		String sTaskId = context
-				.getConfiguration()
-				.get("mapred.task.id")
+		String sTaskId = context.getConfiguration().get("mapred.task.id")
 				.substring(
 						context.getConfiguration().get("mapred.task.id")
 								.indexOf("_r_") + 3);

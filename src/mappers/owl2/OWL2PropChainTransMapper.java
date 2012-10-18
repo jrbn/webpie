@@ -32,7 +32,7 @@ public class OWL2PropChainTransMapper extends
 			int distance = NumberUtils.decodeInt(key.getBytes(), 0);
 			int position = NumberUtils.decodeInt(key.getBytes(), 4);
 			int chainLength = NumberUtils.decodeInt(key.getBytes(), 8);
-
+	
 			if ((position == ((chainLength / pow) * pow) && position > 0)
 					|| (distance == chainLength)) {
 				context.write(key, value);
@@ -43,20 +43,20 @@ public class OWL2PropChainTransMapper extends
 				NumberUtils.encodeInt(oValue.getBytes(), 13, position);
 				NumberUtils.encodeInt(oValue.getBytes(), 17, chainLength);
 				if (position % pow == 0) {
-					NumberUtils.encodeLong(oKey.getBytes(), 0,
-							NumberUtils.decodeLong(value.getBytes(), 8)); // Predicate
-					NumberUtils.encodeLong(oKey.getBytes(), 8,
-							NumberUtils.decodeLong(value.getBytes(), 16)); // Object
-					NumberUtils.encodeLong(oValue.getBytes(), 1,
-							NumberUtils.decodeLong(value.getBytes(), 0));
+					NumberUtils.encodeLong(oKey.getBytes(), 0, NumberUtils
+							.decodeLong(value.getBytes(), 8)); //Predicate
+					NumberUtils.encodeLong(oKey.getBytes(), 8, NumberUtils
+							.decodeLong(value.getBytes(), 16)); //Object
+					NumberUtils.encodeLong(oValue.getBytes(), 1, NumberUtils
+							.decodeLong(value.getBytes(), 0));
 					oValue.getBytes()[0] = 0;
 				} else {
-					NumberUtils.encodeLong(oKey.getBytes(), 0,
-							NumberUtils.decodeLong(value.getBytes(), 8));
-					NumberUtils.encodeLong(oKey.getBytes(), 8,
-							NumberUtils.decodeLong(value.getBytes(), 0));
-					NumberUtils.encodeLong(oValue.getBytes(), 1,
-							NumberUtils.decodeLong(value.getBytes(), 16));
+					NumberUtils.encodeLong(oKey.getBytes(), 0, NumberUtils
+							.decodeLong(value.getBytes(), 8));
+					NumberUtils.encodeLong(oKey.getBytes(), 8, NumberUtils
+							.decodeLong(value.getBytes(), 0));
+					NumberUtils.encodeLong(oValue.getBytes(), 1, NumberUtils
+							.decodeLong(value.getBytes(), 16));
 					oValue.getBytes()[0] = 1;
 				}
 				context.write(oKey, oValue);

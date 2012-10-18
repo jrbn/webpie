@@ -79,7 +79,7 @@ public class Triple implements WritableComparable<Triple>, Serializable {
 		}
 		counter <<= 3;
 		counter += n;
-		out.write((int) (counter));
+		out.write((int)(counter));
 		for (int m = 0; m < n; ++m) {
 			counter >>= 8;
 			out.write((int) counter & 0xFF);
@@ -88,16 +88,15 @@ public class Triple implements WritableComparable<Triple>, Serializable {
 
 	@Override
 	public void readFields(DataInput in) throws IOException {
-
+		
 		subject = in.readLong();
 		predicate = in.readLong();
 		object = in.readLong();
 
-		// subject = readResource(in);
-		// predicate = readResource(in);
-		// object = readResource(in);
-		//
-
+		//subject = readResource(in);
+		//predicate = readResource(in);
+		//object = readResource(in);
+		
 		byte flags = in.readByte();
 		isObjectLiteral = (flags >> 1) == 1;
 
@@ -106,16 +105,14 @@ public class Triple implements WritableComparable<Triple>, Serializable {
 	@Override
 	public void write(DataOutput out) throws IOException {
 
-		// if (!compress) {
 		out.writeLong(subject);
 		out.writeLong(predicate);
 		out.writeLong(object);
-		// } else {
-		// writeResource(out, subject);
-		// writeResource(out, predicate);
-		// writeResource(out, object);
-		// }
-
+		
+		//writeResource(out, subject);
+		//writeResource(out, predicate);
+		//writeResource(out, object);
+		
 		byte flag = 0;
 		if (isObjectLiteral)
 			flag = (byte) (flag | 0x2);
@@ -123,16 +120,17 @@ public class Triple implements WritableComparable<Triple>, Serializable {
 
 	}
 
+	public static Triple read(DataInput in) throws IOException {
+		Triple w = new Triple();
+		w.readFields(in);
+		return w;
+	}
+
 	public String toString() {
 		return subject + " " + predicate + " " + object;
 	}
 
 	public int hashCode() {
-//		int hash = (int) (subject >> 16);
-//		hash += (subject << 16) & 0xFF0000;
-//		hash += (predicate << 8) & 0xFF00;
-//		hash += object & 0xFF;
-//		return hash;
 		return toString().hashCode();
 	}
 
@@ -162,6 +160,7 @@ public class Triple implements WritableComparable<Triple>, Serializable {
 				return -1;
 			}
 		}
+
 	}
 
 	public boolean equals(Object triple) {

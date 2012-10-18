@@ -1,5 +1,6 @@
 package mappers.owl2;
 
+
 import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
@@ -41,29 +42,27 @@ public class OWL2PropChainExtractMapper extends
 
 	public void map(TripleSource key, Triple value, Context context)
 			throws IOException, InterruptedException {
-
-		if (properties.containsKey(value.getPredicate())) {
-			Collection<byte[]> matches = properties.get(value.getPredicate());
-			NumberUtils.encodeLong(oValue.getBytes(), 0, value.getSubject());
-			NumberUtils.encodeLong(oValue.getBytes(), 16, value.getObject());
-			for (byte[] match : matches) {
-				NumberUtils.encodeLong(oValue.getBytes(), 8,
-						NumberUtils.decodeLong(match, 0));
-				NumberUtils.encodeInt(oKey.getBytes(), 4,
-						NumberUtils.decodeInt(match, 8));
-				NumberUtils.encodeInt(oKey.getBytes(), 8,
-						NumberUtils.decodeInt(match, 12));
-				context.write(oKey, oValue);
+		
+			if (properties.containsKey(value.getPredicate())) {
+				Collection<byte[]> matches = properties.get(value
+						.getPredicate());
+				NumberUtils.encodeLong(oValue.getBytes(), 0, value.getSubject());
+				NumberUtils.encodeLong(oValue.getBytes(), 16, value.getObject());
+				for(byte[] match : matches) {
+					NumberUtils.encodeLong(oValue.getBytes(), 8, NumberUtils.decodeLong(match, 0));
+					NumberUtils.encodeInt(oKey.getBytes(), 4, NumberUtils.decodeInt(match, 8));
+					NumberUtils.encodeInt(oKey.getBytes(), 8, NumberUtils.decodeInt(match, 12));
+					context.write(oKey,oValue);
+				}
 			}
-		}
-
-		if (chainProperties.contains(value.getPredicate())) {
-			// Extract it to check the duplicates
-			NumberUtils.encodeLong(oValue.getBytes(), 0, value.getSubject());
-			NumberUtils.encodeLong(oValue.getBytes(), 8, value.getPredicate());
-			NumberUtils.encodeLong(oValue.getBytes(), 16, value.getObject());
-			context.write(oDuplKey, oValue);
-		}
+			
+			if (chainProperties.contains(value.getPredicate())) {
+				//Extract it to check the duplicates
+				NumberUtils.encodeLong(oValue.getBytes(), 0, value.getSubject());
+				NumberUtils.encodeLong(oValue.getBytes(), 8, value.getPredicate());
+				NumberUtils.encodeLong(oValue.getBytes(), 16, value.getObject());				
+				context.write(oDuplKey, oValue);
+			}
 	}
 
 	protected void setup(Context context) throws IOException {
@@ -74,20 +73,19 @@ public class OWL2PropChainExtractMapper extends
 		if (properties == null) { // Load the schema in memory
 			properties = new HashMap<Long, Collection<byte[]>>();
 
-			Map<Long, Collection<Long>> chainProps = FilesTriplesReader
+			 Map<Long, Collection<Long>> chainProps = FilesTriplesReader
 					.loadMapIntoMemory("FILTER_ONLY_OWL_CHAIN_PROPERTIES",
 							context, true);
-			chainProperties = new HashSet<Long>();
-			FilesTriplesReader.loadSetIntoMemory(chainProperties, context,
-					"FILTER_ONLY_OWL_CHAIN_PROPERTIES", -1);
+			 chainProperties = new HashSet<Long>();
+			 FilesTriplesReader.loadSetIntoMemory(chainProperties, context, "FILTER_ONLY_OWL_CHAIN_PROPERTIES", -1);
 
 			// Read all the lists and check whether some match with the chain
 			// properties
 			FileSystem fs = FileSystem.get(context.getConfiguration());
 
 			Path[] paths = FileInputFormat.getInputPaths(context);
-			FileStatus[] files = fs.listStatus(new Path(paths[0],
-					"_lists/dir-current"), new OutputLogFilter());
+			FileStatus[] files = fs.listStatus(new Path(paths[0], "_lists/dir-current"),
+					new OutputLogFilter());
 			BytesWritable key = new BytesWritable();
 			BytesWritable value = new BytesWritable();
 			for (FileStatus file : files) {
@@ -95,8 +93,8 @@ public class OWL2PropChainExtractMapper extends
 				 * Open the file and check whether it matches with the schema
 				 * loaded before
 				 */
-				SequenceFile.Reader input = new SequenceFile.Reader(fs,
-						file.getPath(), context.getConfiguration());
+				SequenceFile.Reader input = new SequenceFile.Reader(fs, file
+						.getPath(), context.getConfiguration());
 				boolean nextList = false;
 				do {
 					nextList = input.next(key, value);
@@ -107,8 +105,8 @@ public class OWL2PropChainExtractMapper extends
 							Collection<Long> axiomProps = chainProps
 									.get(listHeader);
 							for (int i = 0; i < value.getLength(); i += 8) {
-								long prop = NumberUtils.decodeLong(
-										value.getBytes(), i);
+								long prop = NumberUtils.decodeLong(value
+										.getBytes(), i);
 								if (!properties.containsKey(prop)) {
 									properties.put(prop,
 											new LinkedList<byte[]>());

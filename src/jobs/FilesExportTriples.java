@@ -1,5 +1,6 @@
 package jobs;
 
+
 import java.io.IOException;
 
 import mappers.io.ExportTriplesDecontructMapper;
@@ -37,23 +38,22 @@ import reducers.io.ExportTriplesSampleReducer;
 
 public class FilesExportTriples extends Configured implements Tool {
 
-	private static Logger log = LoggerFactory
-			.getLogger(FilesExportTriples.class);
-
-	// Parameters
+	private static Logger log = LoggerFactory.getLogger(FilesExportTriples.class);
+	
+	//Parameters
 	private int numMapTasks = 4;
-	private int numReduceTasks = 2;
+	private int numReduceTasks = 2;	
 
 	private int sampling = 0;
 	private int resourceThreshold = 0;
 
 	private void parseArgs(String[] args) {
 
-		for (int i = 0; i < args.length; ++i) {
+		for(int i=0;i<args.length; ++i) {
 			if (args[i].equalsIgnoreCase("--maptasks")) {
 				numMapTasks = Integer.valueOf(args[++i]);
 			}
-
+			
 			if (args[i].equalsIgnoreCase("--reducetasks")) {
 				numReduceTasks = Integer.valueOf(args[++i]);
 			}
@@ -68,154 +68,142 @@ public class FilesExportTriples extends Configured implements Tool {
 		}
 	}
 
-	// Create new job and set all parameters
+	//Create new job and set all parameters
 	private Job createNewJob(String name) throws IOException {
 		Configuration conf = new Configuration(getConf());
 		conf.setInt("reasoner.samplingPercentage", sampling);
-		conf.setInt("reasoner.threshold", resourceThreshold);
-		conf.setInt("maptasks", numMapTasks);
-		conf.set("input.filter", "FILTER_ONLY_HIDDEN");
-		conf.setBoolean("mapred.compress.map.output", true);
-
+	    conf.setInt("reasoner.threshold", resourceThreshold);
+	    conf.setInt("maptasks", numMapTasks);
+	    conf.set("input.filter", "FILTER_ONLY_HIDDEN");
+	    conf.setBoolean("mapred.compress.map.output", true);
+	    
 		Job job = new Job(conf);
 		job.setJarByClass(FilesExportTriples.class);
 		job.setJobName(name);
 		job.setNumReduceTasks(numReduceTasks);
 		SequenceFileOutputFormat.setCompressOutput(job, true);
-		SequenceFileOutputFormat.setOutputCompressionType(job,
-				CompressionType.BLOCK);
-
+	    SequenceFileOutputFormat.setOutputCompressionType(job, CompressionType.BLOCK);
+		
 		return job;
 	}
-
-	private void sampleCommonResources(String[] args) throws IOException,
-			InterruptedException, ClassNotFoundException {
+	
+	private void sampleCommonResources(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
 		Job job = createNewJob("Sampling common resources");
 
-		// Input
+		//Input
 		FilesTriplesReader.addInputPath(job, new Path(args[0]));
 		job.setInputFormatClass(FilesTriplesReader.class);
-
-		// Job
+		
+		//Job
 		job.setMapperClass(ExportTriplesSampleMapper.class);
 		job.setPartitionerClass(MyHashPartitioner.class);
 		job.setMapOutputKeyClass(LongWritable.class);
 		job.setMapOutputValueClass(NullWritable.class);
 		job.setReducerClass(ExportTriplesSampleReducer.class);
-
-		// Output
+		
+	    //Output
 		job.setOutputKeyClass(LongWritable.class);
-		job.setOutputValueClass(BytesWritable.class);
-		Path commonResourcesPath = new Path(new Path(args[1]),
-				"_commonResources");
-		SequenceFileOutputFormat.setOutputPath(job, commonResourcesPath);
-		job.setOutputFormatClass(SequenceFileOutputFormat.class);
+	    job.setOutputValueClass(BytesWritable.class);
+	    Path commonResourcesPath = new Path(new Path(args[1]), "_commonResources");
+	    SequenceFileOutputFormat.setOutputPath(job, commonResourcesPath);
+	    job.setOutputFormatClass(SequenceFileOutputFormat.class);
 
-		// Launch
-		long time = System.currentTimeMillis();
-		job.waitForCompletion(true);
-		log.info("Job finished in " + (System.currentTimeMillis() - time));
+	    //Launch
+	    long time = System.currentTimeMillis();
+	    job.waitForCompletion(true);
+	    log.info("Job finished in " + (System.currentTimeMillis() - time));
 	}
-
-	private void joinCommonResources(String[] args) throws IOException,
-			InterruptedException, ClassNotFoundException {
+	
+	private void joinCommonResources(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
 		Job job = createNewJob("Join common resources");
-		job.getConfiguration().set("commonResources",
-				args[1] + "/_commonResources");
+		job.getConfiguration().set("commonResources", args[1] + "/_commonResources");
+		
+		//Input
+	    job.setInputFormatClass(FilesDictReader.class);
+	    SequenceFileInputFormat.addInputPath(job, new Path(args[0], "_dict/table"));
 
-		// Input
-		job.setInputFormatClass(FilesDictReader.class);
-		SequenceFileInputFormat.addInputPath(job, new Path(args[0],
-				"_dict/table"));
+	    //Job
+	    job.setMapperClass(ExportTriplesJoinDictMapper.class);
+	    job.setMapOutputKeyClass(LongWritable.class);
+	    job.setMapOutputValueClass(BytesWritable.class);
+	    job.setNumReduceTasks(0);
+	    
+	    //Output
+	    job.setOutputKeyClass(LongWritable.class);
+	    job.setOutputValueClass(BytesWritable.class);
+	    job.setOutputFormatClass(SequenceFileOutputFormat.class);
+	    SequenceFileOutputFormat.setOutputPath(job, new Path(args[1],"_joinCommonResources"));
 
-		// Job
-		job.setMapperClass(ExportTriplesJoinDictMapper.class);
-		job.setMapOutputKeyClass(LongWritable.class);
-		job.setMapOutputValueClass(BytesWritable.class);
-		job.setNumReduceTasks(0);
-
-		// Output
-		job.setOutputKeyClass(LongWritable.class);
-		job.setOutputValueClass(BytesWritable.class);
-		job.setOutputFormatClass(SequenceFileOutputFormat.class);
-		SequenceFileOutputFormat.setOutputPath(job, new Path(args[1],
-				"_joinCommonResources"));
-
-		// Launch
-		long time = System.currentTimeMillis();
-		job.waitForCompletion(true);
-		log.info("Job finished in " + (System.currentTimeMillis() - time));
+	    //Launch
+	    long time = System.currentTimeMillis();
+	    job.waitForCompletion(true);
+	    log.info("Job finished in " + (System.currentTimeMillis() - time));
 	}
-
-	private long fullDictionaryDecoding(String[] args) throws IOException,
-			InterruptedException, ClassNotFoundException {
+	
+	private long fullDictionaryDecoding(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
 		Job job = createNewJob("Dictionary decoding");
-		job.getConfiguration().set("joinCommonResources",
-				args[1] + "/_joinCommonResources");
+		job.getConfiguration().set("joinCommonResources",args[1] + "/_joinCommonResources");
+		
+		//Input
+	    job.setInputFormatClass(FilesCombinedReader.class);
+	    SequenceFileInputFormat.addInputPath(job, new Path(args[0], "_dict/table"));
+	    SequenceFileInputFormat.addInputPath(job, new Path(args[0]));
 
-		// Input
-		job.setInputFormatClass(FilesCombinedReader.class);
-		SequenceFileInputFormat.addInputPath(job, new Path(args[0],
-				"_dict/table"));
-		SequenceFileInputFormat.addInputPath(job, new Path(args[0]));
-
-		// Job
-		job.setMapperClass(ExportTriplesDecontructMapper.class);
-		job.setMapOutputKeyClass(LongWritable.class);
-		job.setMapOutputValueClass(BytesWritable.class);
-		job.setPartitionerClass(MyHashPartitioner.class);
-		job.setReducerClass(ExportTriplesDeconstructReducer.class);
-
-		// Output
-		job.setOutputKeyClass(LongWritable.class);
-		job.setOutputValueClass(BytesWritable.class);
-		job.setOutputFormatClass(SequenceFileOutputFormat.class);
-		SequenceFileOutputFormat.setOutputPath(job, new Path(args[1],
-				"deconstructedTriples"));
-
-		// Launch
-		long time = System.currentTimeMillis();
-		job.waitForCompletion(true);
-		log.info("Job finished in " + (System.currentTimeMillis() - time));
-		return 0;
+	    //Job
+	    job.setMapperClass(ExportTriplesDecontructMapper.class);
+	    job.setMapOutputKeyClass(LongWritable.class);
+	    job.setMapOutputValueClass(BytesWritable.class);
+	    job.setPartitionerClass(MyHashPartitioner.class);
+	    job.setReducerClass(ExportTriplesDeconstructReducer.class);
+	    
+	    //Output
+	    job.setOutputKeyClass(LongWritable.class);
+	    job.setOutputValueClass(BytesWritable.class);
+	    job.setOutputFormatClass(SequenceFileOutputFormat.class);
+	    SequenceFileOutputFormat.setOutputPath(job, new Path(args[1],"deconstructedTriples"));
+	    
+	    //Launch
+	    long time = System.currentTimeMillis();
+	    job.waitForCompletion(true);
+	    log.info("Job finished in " + (System.currentTimeMillis() - time));
+	    return 0;
 	}
-
-	private long reconstructTriples(String[] args) throws IOException,
-			InterruptedException, ClassNotFoundException {
+	
+	private long reconstructTriples(String[] args) throws IOException, InterruptedException, ClassNotFoundException {
 		Job job = createNewJob("Reconstruct triples");
+	    	    
+	    job.setInputFormatClass(SequenceFileInputFormat.class);
+	    SequenceFileInputFormat.setInputPathFilter(job, OutputLogFilter.class);
+	    SequenceFileInputFormat.addInputPath(job, new Path(args[1], "deconstructedTriples"));
 
-		job.setInputFormatClass(SequenceFileInputFormat.class);
-		SequenceFileInputFormat.setInputPathFilter(job, OutputLogFilter.class);
-		SequenceFileInputFormat.addInputPath(job, new Path(args[1],
-				"deconstructedTriples"));
+	    job.setMapperClass(ExportTriplesReconstructMapper.class);
+	    job.setMapOutputKeyClass(LongWritable.class);
+	    job.setMapOutputValueClass(BytesWritable.class);
+	    job.setPartitionerClass(MyHashPartitioner.class);
+	    job.setReducerClass(ExportTriplesReconstructReducer.class);
+	    
+	    job.setOutputKeyClass(NullWritable.class);
+	    job.setOutputValueClass(Text.class);
+	    job.setOutputFormatClass(TextOutputFormat.class);
+	    TextOutputFormat.setCompressOutput(job, true);
+	    TextOutputFormat.setOutputCompressorClass(job, GzipCodec.class);
+	    TextOutputFormat.setOutputPath(job, new Path(args[1], "triples"));
 
-		job.setMapperClass(ExportTriplesReconstructMapper.class);
-		job.setMapOutputKeyClass(LongWritable.class);
-		job.setMapOutputValueClass(BytesWritable.class);
-		job.setPartitionerClass(MyHashPartitioner.class);
-		job.setReducerClass(ExportTriplesReconstructReducer.class);
-
-		job.setOutputKeyClass(NullWritable.class);
-		job.setOutputValueClass(Text.class);
-		job.setOutputFormatClass(TextOutputFormat.class);
-		TextOutputFormat.setCompressOutput(job, true);
-		TextOutputFormat.setOutputCompressorClass(job, GzipCodec.class);
-		TextOutputFormat.setOutputPath(job, new Path(args[1], "triples"));
-
-		// Launch
-		long time = System.currentTimeMillis();
-		job.waitForCompletion(true);
-		log.info("Job finished in " + (System.currentTimeMillis() - time));
-
-		// Clean the intermediate directories
-		FileSystem fs = FileSystem.get(job.getConfiguration());
-		fs.delete(new Path(args[1], "_commonResources"), true);
-		fs.delete(new Path(args[1], "_joinCommonResources"), true);
-		fs.delete(new Path(args[1], "deconstructedTriples"), true);
-
-		return 0;
+	    //Launch
+	    long time = System.currentTimeMillis();
+	    job.waitForCompletion(true);
+	    log.info("Job finished in " + (System.currentTimeMillis() - time));
+	    
+	  //Clean the intermediate directories
+	    FileSystem fs = FileSystem.get(job.getConfiguration());
+	    fs.delete(new Path(args[1],"_commonResources"), true);
+	    fs.delete(new Path(args[1],"_joinCommonResources"), true);
+	    fs.delete(new Path(args[1],"deconstructedTriples"), true);
+	    
+	    
+	    return 0;
 	}
-
+	
 	@Override
 	public int run(String[] args) throws Exception {
 		try {
@@ -239,9 +227,8 @@ public class FilesExportTriples extends Configured implements Tool {
 		}
 
 		long time = System.currentTimeMillis();
-		int res = ToolRunner.run(new Configuration(), new FilesExportTriples(),
-				args);
+		int res = ToolRunner.run(new Configuration(), new FilesExportTriples(), args);
 		log.info("Export time: " + (System.currentTimeMillis() - time));
 		System.exit(res);
-	}
+	  }	
 }

@@ -11,6 +11,8 @@ import org.apache.hadoop.mapreduce.Job;
 
 import reducers.owl.OWLAllSomeValuesReducer;
 
+import com.twitter.elephantbird.mapreduce.io.ProtobufWritable;
+
 public class OWLSomeAllValuesBlock extends ExecutionBlock {
 
 	@Override
@@ -22,7 +24,7 @@ public class OWLSomeAllValuesBlock extends ExecutionBlock {
 
 		job.setMapperClass(OWLAllSomeValuesMapper.class);
 		job.setMapOutputKeyClass(BytesWritable.class);
-		job.setMapOutputValueClass(BytesWritable.class);
+		job.setMapOutputValueClass(ProtobufWritable.class);
 		job.setReducerClass(OWLAllSomeValuesReducer.class);
 
 		String tmpDir = pool.toString() + OWL_ALL_VALUE_TMP + "-"
@@ -30,10 +32,9 @@ public class OWLSomeAllValuesBlock extends ExecutionBlock {
 		configureOutputJob(job, tmpDir);
 
 		job.waitForCompletion(true);
-		long derivation = job
-				.getCounters()
-				.findCounter("org.apache.hadoop.mapred.Task$Counter",
-						"REDUCE_OUTPUT_RECORDS").getValue();
+		long derivation = job.getCounters().findCounter(
+				"org.apache.hadoop.mapred.Task$Counter",
+				"REDUCE_OUTPUT_RECORDS").getValue();
 
 		setNotFilteredDerivation(derivation);
 		if (derivation > 0)
@@ -41,18 +42,17 @@ public class OWLSomeAllValuesBlock extends ExecutionBlock {
 
 		if (getNotFilteredDerivation() > 0) {
 
-			long inputSize = job
-					.getCounters()
-					.findCounter("org.apache.hadoop.mapred.Task$Counter",
-							"MAP_INPUT_RECORDS").getValue();
+			long inputSize = job.getCounters().findCounter(
+					"org.apache.hadoop.mapred.Task$Counter",
+					"MAP_INPUT_RECORDS").getValue();
 			int ratio = (int) ((double) derivation / inputSize * 100);
 			if (getStrategy() == STRATEGY_CLEAN_DUPL_ALWAYS
 					|| (getStrategy() == STRATEGY_CLEAN_DUPL_LARGE_DERIVATION && ratio > getDerivationRatio())) {
 				String outputDir = pool.toString() + OWL_OUTPUT_DIR
 						+ "/dir-all-some-statements-" + executionStep;
-				long currentDerivation = deleteDuplicatedTriples(
-						pool.toString(), tmpDir, "FILTER_ONLY_HIDDEN",
-						outputDir, getFilterFromStep(), true, false, true);
+				long currentDerivation = deleteDuplicatedTriples(pool
+						.toString(), tmpDir, "FILTER_ONLY_HIDDEN", outputDir,
+						getFilterFromStep(), true, false, true);
 
 				setFilterFromStep(executionStep);
 				setFilteredDerivation(currentDerivation);
@@ -64,8 +64,9 @@ public class OWLSomeAllValuesBlock extends ExecutionBlock {
 
 				// Remove the not filtered directories
 				FileSystem.get(job.getConfiguration())
-						.delete(new Path(pool.toString()
-								+ RDFS_NOT_FILTERED_DIR), true);
+						.delete(
+								new Path(pool.toString()
+										+ RDFS_NOT_FILTERED_DIR), true);
 				FileSystem.get(job.getConfiguration()).delete(
 						new Path(pool.toString() + OWL_NOT_FILTERED_DIR), true);
 

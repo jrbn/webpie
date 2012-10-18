@@ -31,10 +31,10 @@ public class NTriplesCombinedReader extends
 		private LineRecordReader rr = new LineRecordReader();
 		private SequenceFileRecordReader<LongWritable, BytesWritable> dr = new SequenceFileRecordReader<LongWritable, BytesWritable>();
 		private String fileName = null;
-
+		
 		private BytesWritable oKey = new BytesWritable();
 		private BytesWritable oValue = new BytesWritable();
-
+		
 		int i = 0;
 
 		@Override
@@ -56,10 +56,9 @@ public class NTriplesCombinedReader extends
 			} else {
 				oKey.setSize(9);
 				oKey.getBytes()[0] = 1;
-				NumberUtils.encodeLong(oKey.getBytes(), 1, dr.getCurrentKey()
-						.get());
+				NumberUtils.encodeLong(oKey.getBytes(), 1, dr.getCurrentKey().get());
 			}
-
+			
 			return oKey;
 		}
 
@@ -104,7 +103,7 @@ public class NTriplesCombinedReader extends
 				++i;
 				return true;
 			}
-
+			
 			return false;
 		}
 
@@ -124,8 +123,7 @@ public class NTriplesCombinedReader extends
 				try {
 					value = rr.nextKeyValue();
 				} catch (Exception e) {
-					log.error("Error in parsing the file: "
-							+ split.getFiles().get(i - 1).getPath(), e);
+					log.error("Error in parsing the file: " + split.getFiles().get(i - 1).getPath(), e);
 					value = false;
 				}
 			} else {

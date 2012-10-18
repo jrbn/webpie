@@ -10,62 +10,62 @@ import org.apache.hadoop.mapreduce.Reducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import utils.NumberUtils;
 import utils.TriplesUtils;
+
+import com.twitter.elephantbird.mapreduce.io.ProtobufWritable;
+
+import data.Tree.ByteResourceNode;
+import data.Tree.Node;
+import data.Tree.Node.Rule;
 import data.Triple;
 import data.TripleSource;
 
-public class OWLAllSomeValuesReducer extends
-		Reducer<BytesWritable, BytesWritable, TripleSource, Triple> {
+public class OWLAllSomeValuesReducer
+		extends
+		Reducer<BytesWritable, ProtobufWritable<ByteResourceNode>, TripleSource, Triple> {
 
 	protected static Logger log = LoggerFactory
 			.getLogger(OWLAllSomeValuesReducer.class);
 	private Triple triple = new Triple();
-	private TripleSource source = new TripleSource();
 
-	private Collection<byte[]> types = new ArrayList<byte[]>();
-	private Collection<byte[]> resources = new ArrayList<byte[]>();
+	private TripleSource sourceSome = new TripleSource();
+	private TripleSource sourceAll = new TripleSource();
+
+	private Collection<ByteResourceNode> types = new ArrayList<ByteResourceNode>();
+	private Collection<ByteResourceNode> resources = new ArrayList<ByteResourceNode>();
 	private int previousDerivation = -1;
 
 	@Override
-	public void reduce(BytesWritable key, Iterable<BytesWritable> values,
-			Context context) throws IOException, InterruptedException {
+	public void reduce(BytesWritable key,
+			Iterable<ProtobufWritable<ByteResourceNode>> values, Context context)
+			throws IOException, InterruptedException {
 		types.clear();
 		resources.clear();
 
-		Iterator<BytesWritable> itr = values.iterator();
+		Iterator<ProtobufWritable<ByteResourceNode>> itr = values.iterator();
 		while (itr.hasNext()) {
-			BytesWritable value = itr.next();
-			byte[] bValue = value.getBytes();
-			byte[] resource_step = new byte[12];
-			System.arraycopy(bValue, 1, resource_step, 0, 12);
-			if (bValue[0] == 1) { // Type triple
-				types.add(resource_step);
+			ProtobufWritable<ByteResourceNode> brn = itr.next();
+			brn.setConverter(ByteResourceNode.class);
+			ByteResourceNode value = brn.get();
+			if (value.getId() == 1) { // Type triple
+				types.add(value);
 			} else { // Resource triple
-				resources.add(resource_step);
+				resources.add(value);
 			}
 		}
 
-		if (types.size() > 0 && resources.size() > 0) {
-			Iterator<byte[]> itrResource = resources.iterator();
-			while (itrResource.hasNext()) {
-				byte[] value = itrResource.next();
-				long subject = NumberUtils.decodeLong(value, 0);
-				int sstep = NumberUtils.decodeInt(value, 8);
-				triple.setSubject(subject);
-				Iterator<byte[]> itrTypes = types.iterator();
-				while (itrTypes.hasNext()) {
-					byte[] typeValue = itrTypes.next();
-					long object = NumberUtils.decodeLong(typeValue, 0);
-					int ostep = NumberUtils.decodeInt(typeValue, 8);
-					triple.setObject(object);
-
-					if (Math.max(sstep, ostep) >= (previousDerivation - 1)) // Not
-																			// ideal
-																			// but
-																			// should
-																			// work
-						context.write(source, triple);
+		for (ByteResourceNode resource : resources) {
+			triple.setSubject(resource.getResource());
+			for (ByteResourceNode type : types) {
+				triple.setObject(type.getResource());
+				if (Math.max(resource.getHistory().getStep(), type.getHistory()
+						.getStep()) >= (previousDerivation - 1)) {
+					// Fix the history of the source
+					sourceSome.clearChildren();
+					sourceSome.addChild(resource.getHistory());
+					for (Node child : type.getHistory().getChildrenList())
+						sourceSome.addChild(child);
+					context.write(sourceSome, triple);
 				}
 			}
 		}
@@ -75,8 +75,12 @@ public class OWLAllSomeValuesReducer extends
 	public void setup(Context context) {
 		previousDerivation = context.getConfiguration().getInt(
 				"reasoner.previousStep", -1);
-		source.setDerivation(TripleSource.OWL_RULE_15);
-		source.setStep(context.getConfiguration().getInt("reasoner.step", 0));
+		sourceSome.setRule(Rule.OWL_SOME_VALUES);
+		sourceSome.setStep(context.getConfiguration()
+				.getInt("reasoner.step", 0));
+		sourceAll.setRule(Rule.OWL_ALL_VALUES);
+		sourceAll
+				.setStep(context.getConfiguration().getInt("reasoner.step", 0));
 		triple.setObjectLiteral(false);
 		triple.setPredicate(TriplesUtils.RDF_TYPE);
 	}

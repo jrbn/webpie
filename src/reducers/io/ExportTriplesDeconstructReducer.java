@@ -42,6 +42,14 @@ public class ExportTriplesDeconstructReducer extends
 					oValue.setSize(value.getLength());
 					System.arraycopy(bValue, 1, oValue.getBytes(), 1,
 							value.getLength() - 1);
+
+					/*String term = new String(oValue.getBytes(), 0,
+							oValue.getLength());
+					//if (term.indexOf("Lecturer6") != -1) {
+					if (term.equals("<http://www.Department9.University0.edu/Lecturer6>")) {
+						System.out.println(term);
+					}*/
+
 					for (byte[] storageElement : storage) {
 						oValue.getBytes()[0] = storageElement[0];
 						oKey.set(NumberUtils.decodeLong(storageElement, 1));

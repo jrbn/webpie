@@ -62,6 +62,7 @@ public class FilesImportTriples extends Configured implements Tool {
 	private boolean rewriteBlankNodes = true;
 	private boolean noDictionary = true;
 
+	@Override
 	public int run(String[] args) throws Exception {
 		parseArgs(args);
 		FileSystem fs = FileSystem.get(this.getConf());
@@ -186,16 +187,13 @@ public class FilesImportTriples extends Configured implements Tool {
 
 		// Create a file where I save the current counters
 		Map<Integer, Long> counters = new HashMap<Integer, Long>();
-		for (int i = 0; i < numReduceTasks; ++i) {
-			CounterGroup group = job.getCounters().getGroup("counter-" + i);
-			Iterator<Counter> itr = group.iterator();
-			while (itr.hasNext()) {
-				Counter counter = itr.next();
-				long lCounter = Long.valueOf(counter.getName());
-				if (lCounter != 0) {
-					counters.put(i, lCounter);
-				}
-			}
+		CounterGroup group = job.getCounters().getGroup("counters");
+		Iterator<Counter> itr = group.iterator();
+		while (itr.hasNext()) {
+			Counter counter = itr.next();
+			String name = counter.getName();
+			int i = Integer.valueOf(name.substring(name.indexOf('-')));
+			counters.put(i, counter.getValue());
 		}
 
 		// Print the content of the hashmap in a file

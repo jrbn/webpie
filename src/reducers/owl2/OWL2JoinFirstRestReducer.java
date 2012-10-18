@@ -18,12 +18,12 @@ public class OWL2JoinFirstRestReducer extends
 
 	protected static Logger log = LoggerFactory
 			.getLogger(OWL2JoinFirstRestReducer.class);
-
+	
 	protected BytesWritable oKey = new BytesWritable();
 	protected BytesWritable oValue = new BytesWritable();
 
 	Set<Long> rests = new HashSet<Long>();
-
+	
 	@Override
 	public void reduce(LongWritable key, Iterable<BytesWritable> values,
 			Context context) throws IOException, InterruptedException {
@@ -32,18 +32,18 @@ public class OWL2JoinFirstRestReducer extends
 		Iterator<BytesWritable> itr = values.iterator();
 		while (itr.hasNext()) {
 			BytesWritable value = itr.next();
-			if (value.getBytes()[0] == 0) { // First
-				first = NumberUtils.decodeLong(value.getBytes(), 1);
+			if (value.getBytes()[0] == 0) { //First
+				first = NumberUtils.decodeLong(value.getBytes(), 1);				
 			} else {
 				long resource = NumberUtils.decodeLong(value.getBytes(), 1);
 				rests.add(resource);
 			}
 		}
-
+		
 		if (first != -1 && rests.size() > 0) {
 			NumberUtils.encodeLong(oKey.getBytes(), 0, key.get());
 			NumberUtils.encodeLong(oValue.getBytes(), 0, first);
-
+			
 			Iterator<Long> itr2 = rests.iterator();
 			while (itr2.hasNext()) {
 				long resource = itr2.next();

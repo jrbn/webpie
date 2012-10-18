@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,18 +11,26 @@ import org.slf4j.LoggerFactory;
 import readers.FilesTriplesReader;
 import utils.NumberUtils;
 import utils.TriplesUtils;
+
+import com.twitter.elephantbird.mapreduce.io.ProtobufWritable;
+
+import data.Tree;
+import data.Tree.ResourceNode;
 import data.Triple;
 import data.TripleSource;
 
-public class RDFSSubPropInheritMapper extends
-		Mapper<TripleSource, Triple, BytesWritable, LongWritable> {
+public class RDFSSubPropInheritMapper
+		extends
+		Mapper<TripleSource, Triple, BytesWritable, ProtobufWritable<Tree.ResourceNode>> {
 
 	protected static Logger log = LoggerFactory
 			.getLogger(RDFSSubPropInheritMapper.class);
 	protected static Map<Long, Integer> subpropSchemaTriples = null;
 
-	protected LongWritable oValue = new LongWritable();
 	protected BytesWritable oKey = new BytesWritable();
+	protected ProtobufWritable<Tree.ResourceNode> oValueContainer = ProtobufWritable
+			.newInstance(ResourceNode.class);
+	protected ResourceNode.Builder oValue = ResourceNode.newBuilder();
 
 	private int previousExecutionStep = -1;
 
@@ -35,7 +42,7 @@ public class RDFSSubPropInheritMapper extends
 		if (subpropSchemaTriples.containsKey(value.getPredicate())) {
 
 			int schemaStep = subpropSchemaTriples.get(value.getPredicate());
-			if (Math.max(schemaStep, key.getStep()) < (previousExecutionStep - 1))
+			if (Math.max(schemaStep, key.getStep()) < previousExecutionStep)
 				return;
 
 			if (!value.isObjectLiteral())
@@ -44,8 +51,12 @@ public class RDFSSubPropInheritMapper extends
 				oKey.getBytes()[0] = 3;
 			NumberUtils.encodeLong(oKey.getBytes(), 1, value.getSubject());
 			NumberUtils.encodeLong(oKey.getBytes(), 9, value.getObject());
-			oValue.set(value.getPredicate());
-			context.write(oKey, oValue);
+
+			oValue.setResource(value.getPredicate());
+			oValue.setHistory(key.getHistory());
+			oValueContainer.set(oValue.build());
+
+			context.write(oKey, oValueContainer);
 		}
 
 		// Check suprop transitivity
@@ -53,14 +64,18 @@ public class RDFSSubPropInheritMapper extends
 				&& subpropSchemaTriples.containsKey(value.getObject())) {
 
 			int schemaStep = subpropSchemaTriples.get(value.getObject());
-			if (Math.max(schemaStep, key.getStep()) < (previousExecutionStep - 1))
+			if (Math.max(schemaStep, key.getStep()) < previousExecutionStep)
 				return;
 
 			// Write the 05 + subject
 			oKey.getBytes()[0] = 5;
 			NumberUtils.encodeLong(oKey.getBytes(), 1, value.getSubject());
-			oValue.set(value.getObject());
-			context.write(oKey, oValue);
+
+			oValue.setResource(value.getObject());
+			oValue.setHistory(key.getHistory());
+			oValueContainer.set(oValue.build());
+
+			context.write(oKey, oValueContainer);
 		}
 	}
 
@@ -71,9 +86,7 @@ public class RDFSSubPropInheritMapper extends
 
 		oKey.setSize(17);
 
-		if (subpropSchemaTriples == null) {
-			subpropSchemaTriples = FilesTriplesReader.loadTriplesWithStep(
-					"FILTER_ONLY_SUBPROP_SCHEMA", context);
-		}
+		subpropSchemaTriples = FilesTriplesReader.loadTriplesWithStep(
+				"FILTER_ONLY_SUBPROP_SCHEMA", context);
 	}
 }

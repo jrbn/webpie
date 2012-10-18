@@ -6,7 +6,9 @@ import java.util.ArrayList;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.mapred.Counters.Group;
+import org.apache.hadoop.mapred.JobHistory.JobInfo;
 import org.apache.hadoop.mapred.JobClient;
+import org.apache.hadoop.mapred.JobHistory;
 import org.apache.hadoop.mapred.JobStatus;
 import org.apache.hadoop.mapred.JobTracker;
 import org.apache.hadoop.mapred.RunningJob;
@@ -37,15 +39,15 @@ public class AnalyzeJobs {
 			JobStatus[] jobs = client.getAllJobs();
 			String[] headers = null;
 			String[] headersMap = null;
-			String[] headersReduce = null;
+			String[] headersReduce = null;			
 			for (JobStatus jobstatus : jobs) {
-
+				
 				if (jobstatus.getRunState() == JobStatus.SUCCEEDED) {
 
 					// Print all counters of the job
 					RunningJob job = client.getJob(jobstatus.getJobID());
 					log.info(job.getJobName());
-
+					
 					if (jobFirstLine) {
 						// Get headers
 						ArrayList<String> lHeaders = new ArrayList<String>();
@@ -184,7 +186,7 @@ public class AnalyzeJobs {
 						values[0] = jobstatus.getJobID().toString();
 						values[1] = job.getJobName();
 						values[2] = task.getTaskID().toString();
-
+						
 						for (Group group : task.getCounters()) {
 							for (Counter counter : group) {
 								int i = 0;

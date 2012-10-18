@@ -48,6 +48,17 @@ public class TriplesUtils {
 	public static final long OWL_ALL_VALUES_FROM = 18;
 	public static final long OWL2_PROPERTY_CHAIN_AXIOM = 29;
 	public static final long OWL2_HAS_KEY = 30;
+	public static final long OWL2_INTERSECTION_OF = 31;
+	public static final long OWL2_UNION_OF = 32;
+	public static final long OWL2_ONE_OF = 33;
+	public static final long OWL2_THING = 34;
+	public static final long OWL2_1 = 35;
+	public static final long OWL2_MAX_CARD = 36;
+	public static final long OWL2_MAX_Q_CARD = 37;
+	public static final long OWL2_ON_CLASS = 38;
+	public static final long OWL2_NOTHING = 39;
+	public static final long OWL2_DATATYPE_PROP = 40;
+	public static final long OWL2_OBJECT_PROP = 41;
 
 	/***** Standard URIs *****/
 	public static final String S_RDF_NIL = "<http://www.w3.org/1999/02/22-rdf-syntax-ns#nil>";
@@ -81,6 +92,17 @@ public class TriplesUtils {
 	public static final String S_OWL_ALL_VALUES_FROM = "<http://www.w3.org/2002/07/owl#allValuesFrom>";
 	public static final String S_OWL2_PROPERTY_CHAIN_AXIOM = "<http://www.w3.org/2002/07/owl#propertyChainAxiom>";
 	public static final String S_OWL2_HAS_KEY = "<http://www.w3.org/2002/07/owl#hasKey>";
+	public static final String S_OWL2_INTERSECTION_OF = "<http://www.w3.org/2002/07/owl#intersectionOf>";
+	public static final String S_OWL2_UNION_OF = "<http://www.w3.org/2002/07/owl#unionOf>";
+	public static final String S_OWL2_ONE_OF = "<http://www.w3.org/2002/07/owl#oneOf>";
+	public static final String S_OWL2_THING = "<http://www.w3.org/2002/07/owl#Thing>";
+	public static final String S_OWL2_1 = "\"1\"^^http://www.w3.org/2001/XMLSchema#nonNegativeInteger";
+	public static final String S_OWL2_MAX_CARD = "<http://www.w3.org/2002/07/owl#maxCardinality>";
+	public static final String S_OWL2_MAX_Q_CARD = "<http://www.w3.org/2002/07/owl#maxQualifiedCardinality>";
+	public static final String S_OWL2_ON_CLASS = "<http://www.w3.org/2002/07/owl#onClass>";
+	public static final String S_OWL2_NOTHING = "<http://www.w3.org/2002/07/owl#Nothing>";
+	public static final String S_OWL2_DATATYPE_PROP = "<http://www.w3.org/2002/07/owl#DatatypeProperty>";
+	public static final String S_OWL2_OBJECT_PROP = "<http://www.w3.org/2002/07/owl#ObjectProperty>";
 
 	/***** TRIPLES TYPES *****/
 	// USED IN RDFS REASONER
@@ -109,13 +131,21 @@ public class TriplesUtils {
 	public static final int SCHEMA_TRIPLE_ON_PROPERTY = 17;
 	public static final int SCHEMA_TRIPLE_SOME_VALUES_FROM = 18;
 	public static final int SCHEMA_TRIPLE_ALL_VALUES_FROM = 19;
-	// public static final int TRANSITIVE_TRIPLE = 23;
 
 	// USED FOR OWL2 REASONER
 	public static final int DATA_TRIPLE_FIRST = 24;
 	public static final int DATA_TRIPLE_REST = 25;
 	public static final int SCHEMA_TRIPLE_PROPERTY_AXIOM = 26;
 	public static final int SCHEMA_TRIPLE_HAS_KEY = 27;
+	public static final int SCHEMA_TRIPLE_INTERSECTION_OF = 28;
+	public static final int SCHEMA_TRIPLE_UNION_OF = 29;
+	public static final int SCHEMA_TRIPLE_ONE_OF = 30;
+	public static final int SCHEMA_TRIPLE_SOME_VALUES_FROM_THING = 31;
+	public static final int SCHEMA_TRIPLE_MAX_CARD_1 = 32;
+	public static final int SCHEMA_TRIPLE_MAX_Q_CARD_1 = 33;
+	public static final int SCHEMA_TRIPLE_ON_CLASS = 34;
+	public static final int DATA_TRIPLE_DATATYPE = 36;
+	public static final int DATA_TRIPLE_OBJECTTYPE = 37;
 
 	// FILE PREFIXES
 	public static final String DIR_PREFIX = "dir-";
@@ -128,10 +158,10 @@ public class TriplesUtils {
 	public static final String FILE_SUFF_RDF_REST = "-rest-data";
 	public static final String FILE_SUFF_OWL_SYMMETRIC_TYPE = "-symmetric-property-type-data";
 	public static final String FILE_SUFF_OWL_TRANSITIVE_TYPE = "-transitive-property-type-data";
-	public static final String FILE_SUFF_OWL_CLASS_TYPE = "-rdfs-class-type-data";
+	public static final String FILE_SUFF_OWL_CLASS_TYPE = "-owl-class-type-data";
 	public static final String FILE_SUFF_OWL_PROPERTY_TYPE = "-owl-property-type-data";
-	public static final String FILE_SUFF_OWL_FUNCTIONAL_PROPERTY_TYPE = "-functional-property-type-data";
-	public static final String FILE_SUFF_OWL_INV_FUNCTIONAL_PROPERTY_TYPE = "-inverse-functional-property-type-data";
+	public static final String FILE_SUFF_OWL_FUNCTIONAL_PROPERTY_TYPE = "-funct-property-type-data";
+	public static final String FILE_SUFF_OWL_INV_FUNCTIONAL_PROPERTY_TYPE = "-invfunct-property-type-data";
 
 	public static final String FILE_SUFF_RDFS_SUBCLASS = "-subclas-schema";
 	public static final String FILE_SUFF_RDFS_RESOURCE_SUBCLASS = "-resource-subclas-schema";
@@ -150,6 +180,15 @@ public class TriplesUtils {
 	public static final String FILE_SUFF_OWL_ALL_VALUES = "-all-values-schema";
 	public static final String FILE_SUFF_OWL2_CHAIN_AXIOM_PROPERTY = "-property-axiom-schema";
 	public static final String FILE_SUFF_OWL2_HAS_KEY = "-has-key-schema";
+	public static final String FILE_SUFF_OWL2_INTERSECTION_OF = "-intersection-of";
+	public static final String FILE_SUFF_OWL2_UNION_OF = "-union-of";
+	public static final String FILE_SUFF_OWL2_ONE_OF = "-one-of";
+	public static final String FILE_SUFF_OWL2_MAX_CARD_1 = "-max-card-1";
+	public static final String FILE_SUFF_OWL2_MAX_Q_CARD_1 = "-max-q-card-1";
+	public static final String FILE_SUFF_OWL2_ON_CLASS = "-on-class";
+	public static final String FILE_SUFF_OWL_SOME_VALUES_THING = "-thing-some-values-schema";
+	public static final String FILE_SUFF_OWL2_DATATYPE_PROP = "-owl-data-type-data";
+	public static final String FILE_SUFF_OWL2_OBJECTTYPE_PROP = "-owl-obj-type-data";
 
 	/* XML CONSTANTS */
 	public static final String XSD = "http://www.w3.org/2001/XMLSchema#";
@@ -193,6 +232,17 @@ public class TriplesUtils {
 		preloadedURIs.put(S_OWL2_PROPERTY_CHAIN_AXIOM,
 				OWL2_PROPERTY_CHAIN_AXIOM);
 		preloadedURIs.put(S_OWL2_HAS_KEY, OWL2_HAS_KEY);
+		preloadedURIs.put(S_OWL2_INTERSECTION_OF, OWL2_INTERSECTION_OF);
+		preloadedURIs.put(S_OWL2_UNION_OF, OWL2_UNION_OF);
+		preloadedURIs.put(S_OWL2_ONE_OF, OWL2_ONE_OF);
+		preloadedURIs.put(S_OWL2_THING, OWL2_THING);
+		preloadedURIs.put(S_OWL2_1, OWL2_1);
+		preloadedURIs.put(S_OWL2_MAX_CARD, OWL2_MAX_CARD);
+		preloadedURIs.put(S_OWL2_MAX_Q_CARD, OWL2_MAX_Q_CARD);
+		preloadedURIs.put(S_OWL2_ON_CLASS, OWL2_ON_CLASS);
+		preloadedURIs.put(S_OWL2_NOTHING, OWL2_NOTHING);
+		preloadedURIs.put(S_OWL2_DATATYPE_PROP, OWL2_DATATYPE_PROP);
+		preloadedURIs.put(S_OWL2_OBJECT_PROP, OWL2_OBJECT_PROP);
 
 		log.info("cache URIs size: " + preloadedURIs.size());
 	}
@@ -327,16 +377,51 @@ public class TriplesUtils {
 			return TriplesUtils.OWL_PREFIX + name + FILE_SUFF_OWL2_HAS_KEY;
 		}
 
+		if (tripleType == SCHEMA_TRIPLE_INTERSECTION_OF) {
+			return TriplesUtils.OWL_PREFIX + name
+					+ FILE_SUFF_OWL2_INTERSECTION_OF;
+		}
+
+		if (tripleType == SCHEMA_TRIPLE_UNION_OF) {
+			return TriplesUtils.OWL_PREFIX + name + FILE_SUFF_OWL2_UNION_OF;
+		}
+
+		if (tripleType == SCHEMA_TRIPLE_ONE_OF) {
+			return TriplesUtils.OWL_PREFIX + name + FILE_SUFF_OWL2_ONE_OF;
+		}
+
+		if (tripleType == SCHEMA_TRIPLE_SOME_VALUES_FROM_THING) {
+			return TriplesUtils.OWL_PREFIX + name
+					+ FILE_SUFF_OWL_SOME_VALUES_THING;
+		}
+
+		if (tripleType == SCHEMA_TRIPLE_MAX_CARD_1) {
+			return TriplesUtils.OWL_PREFIX + name + FILE_SUFF_OWL2_MAX_CARD_1;
+		}
+
+		if (tripleType == SCHEMA_TRIPLE_MAX_Q_CARD_1) {
+			return TriplesUtils.OWL_PREFIX + name + FILE_SUFF_OWL2_MAX_Q_CARD_1;
+		}
+
+		if (tripleType == SCHEMA_TRIPLE_ON_CLASS) {
+			return TriplesUtils.OWL_PREFIX + name + FILE_SUFF_OWL2_ON_CLASS;
+		}
+
+		if (tripleType == DATA_TRIPLE_DATATYPE) {
+			return TriplesUtils.OWL_PREFIX + name
+					+ FILE_SUFF_OWL2_DATATYPE_PROP;
+		}
+
+		if (tripleType == DATA_TRIPLE_OBJECTTYPE) {
+			return TriplesUtils.OWL_PREFIX + name
+					+ FILE_SUFF_OWL2_OBJECTTYPE_PROP;
+		}
+
 		return name + TriplesUtils.FILE_SUFF_OTHER_DATA;
 	}
 
 	public static int getTripleType(TripleSource source, long subject,
 			long predicate, long object) {
-
-		/*
-		 * if (source.getDerivation() == TripleSource.OWL_RULE_4) { return
-		 * TRANSITIVE_TRIPLE; }
-		 */
 
 		int newKey = DATA_TRIPLE;
 		if (predicate == RDFS_RANGE) {
@@ -368,6 +453,10 @@ public class TriplesUtils {
 				newKey = SCHEMA_TRIPLE_SYMMETRIC_PROPERTY;
 			else if (object == OWL_TRANSITIVE_PROPERTY)
 				newKey = SCHEMA_TRIPLE_TRANSITIVE_PROPERTY;
+			else if (object == OWL2_DATATYPE_PROP)
+				newKey = DATA_TRIPLE_DATATYPE;
+			else if (object == OWL2_OBJECT_PROP)
+				newKey = DATA_TRIPLE_OBJECTTYPE;
 			else
 				newKey = DATA_TRIPLE_TYPE;
 		} else if (predicate == OWL_SAME_AS) {
@@ -383,7 +472,10 @@ public class TriplesUtils {
 		} else if (predicate == OWL_ON_PROPERTY) {
 			newKey = SCHEMA_TRIPLE_ON_PROPERTY;
 		} else if (predicate == OWL_SOME_VALUES_FROM) {
-			newKey = SCHEMA_TRIPLE_SOME_VALUES_FROM;
+			if (object == OWL2_THING)
+				newKey = SCHEMA_TRIPLE_SOME_VALUES_FROM_THING;
+			else
+				newKey = SCHEMA_TRIPLE_SOME_VALUES_FROM;
 		} else if (predicate == OWL_ALL_VALUES_FROM) {
 			newKey = SCHEMA_TRIPLE_ALL_VALUES_FROM;
 		} else if (predicate == RDF_FIRST) {
@@ -394,6 +486,18 @@ public class TriplesUtils {
 			newKey = SCHEMA_TRIPLE_PROPERTY_AXIOM;
 		} else if (predicate == OWL2_HAS_KEY) {
 			newKey = SCHEMA_TRIPLE_HAS_KEY;
+		} else if (predicate == OWL2_INTERSECTION_OF) {
+			newKey = SCHEMA_TRIPLE_INTERSECTION_OF;
+		} else if (predicate == OWL2_UNION_OF) {
+			newKey = SCHEMA_TRIPLE_UNION_OF;
+		} else if (predicate == OWL2_ONE_OF) {
+			newKey = SCHEMA_TRIPLE_ONE_OF;
+		} else if (predicate == OWL2_MAX_CARD && object == OWL2_1) {
+			newKey = SCHEMA_TRIPLE_MAX_CARD_1;
+		} else if (predicate == OWL2_MAX_Q_CARD && object == OWL2_1) {
+			newKey = SCHEMA_TRIPLE_MAX_Q_CARD_1;
+		} else if (predicate == OWL2_ON_CLASS) {
+			newKey = SCHEMA_TRIPLE_ON_CLASS;
 		}
 
 		return newKey;
@@ -415,10 +519,10 @@ public class TriplesUtils {
 			if (rewriteBlankNodes) {
 				values[0] = "_:" + sanitizeBlankNodeName(fileId)
 						+ triple.substring(2, triple.indexOf(' ')); // We start
-																	// from
-																	// index 2
-																	// to remove
-																	// the colon
+				// from
+				// index 2
+				// to remove
+				// the colon
 			} else {
 				values[0] = triple.substring(0, triple.indexOf(' '));
 			}
@@ -441,10 +545,10 @@ public class TriplesUtils {
 			if (rewriteBlankNodes) {
 				values[2] = "_:" + sanitizeBlankNodeName(fileId)
 						+ triple.substring(2, triple.indexOf(' ')); // We start
-																	// from
-																	// index 2
-																	// to remove
-																	// the colon
+				// from
+				// index 2
+				// to remove
+				// the colon
 			} else {
 				values[2] = triple.substring(0, triple.indexOf(' '));
 			}
@@ -476,24 +580,32 @@ public class TriplesUtils {
 		return ret.toString();
 	}
 
-	public static void createTripleIndex(byte[] bytes, Triple value,
-			String index) {
+	public static void createTripleIndex(byte[] bytes, int offset,
+			Triple value, String index) {
 		if (index.equalsIgnoreCase("spo")) {
-			NumberUtils.encodeLong(bytes, 0, value.getSubject());
-			NumberUtils.encodeLong(bytes, 8, value.getPredicate());
-			NumberUtils.encodeLong(bytes, 16, value.getObject());
+			NumberUtils.encodeLong(bytes, offset, value.getSubject());
+			NumberUtils.encodeLong(bytes, 8 + offset, value.getPredicate());
+			NumberUtils.encodeLong(bytes, 16 + offset, value.getObject());
 		} else if (index.equalsIgnoreCase("pos")) {
-			NumberUtils.encodeLong(bytes, 0, value.getPredicate());
-			NumberUtils.encodeLong(bytes, 8, value.getObject());
-			NumberUtils.encodeLong(bytes, 16, value.getSubject());
+			NumberUtils.encodeLong(bytes, offset, value.getPredicate());
+			NumberUtils.encodeLong(bytes, 8 + offset, value.getObject());
+			NumberUtils.encodeLong(bytes, 16 + offset, value.getSubject());
 		} else if (index.equalsIgnoreCase("sop")) {
-			NumberUtils.encodeLong(bytes, 0, value.getSubject());
-			NumberUtils.encodeLong(bytes, 8, value.getObject());
-			NumberUtils.encodeLong(bytes, 16, value.getPredicate());
+			NumberUtils.encodeLong(bytes, offset, value.getSubject());
+			NumberUtils.encodeLong(bytes, 8 + offset, value.getObject());
+			NumberUtils.encodeLong(bytes, 16 + offset, value.getPredicate());
+		} else if (index.equalsIgnoreCase("osp")) {
+			NumberUtils.encodeLong(bytes, offset, value.getObject());
+			NumberUtils.encodeLong(bytes, 8 + offset, value.getSubject());
+			NumberUtils.encodeLong(bytes, 16 + offset, value.getPredicate());
+		} else if (index.equalsIgnoreCase("pso")) {
+			NumberUtils.encodeLong(bytes, offset, value.getPredicate());
+			NumberUtils.encodeLong(bytes, 8 + offset, value.getSubject());
+			NumberUtils.encodeLong(bytes, 16 + offset, value.getObject());
 		} else {
-			NumberUtils.encodeLong(bytes, 0, value.getObject());
-			NumberUtils.encodeLong(bytes, 8, value.getPredicate());
-			NumberUtils.encodeLong(bytes, 16, value.getSubject());
+			NumberUtils.encodeLong(bytes, offset, value.getObject());
+			NumberUtils.encodeLong(bytes, 8 + offset, value.getPredicate());
+			NumberUtils.encodeLong(bytes, 16 + offset, value.getSubject());
 		}
 	}
 }

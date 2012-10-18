@@ -13,15 +13,6 @@ public class FileUtils {
 		}
 	};
 
-	public static final PathFilter FILTER_SAME_AS_TABLE = new PathFilter() {
-		@Override
-		public boolean accept(Path p) {
-			String name = p.getName();
-			return !name.startsWith(".") && !name.startsWith("_")
-					&& name.startsWith("dir-");
-		}
-	};
-
 	public static final PathFilter FILTER_DICTIONARY = new PathFilter() {
 		@Override
 		public boolean accept(Path p) {
@@ -48,6 +39,18 @@ public class FileUtils {
 	};
 
 	public static final PathFilter FILTER_ONLY_SAME_AS = new PathFilter() {
+		@Override
+		public boolean accept(Path p) {
+			String name = p.getName();
+			return !name.startsWith("_")
+					&& !name.startsWith(".")
+					&& (name.startsWith(TriplesUtils.DIR_PREFIX) || name
+							.endsWith(TriplesUtils.FILE_SUFF_OWL_SAME_AS));
+		}
+	};
+	
+
+	public static final PathFilter FILTER_ONLY_OWL_SAMEAS = new PathFilter() {
 		@Override
 		public boolean accept(Path p) {
 			String name = p.getName();
@@ -227,17 +230,6 @@ public class FileUtils {
 		}
 	};
 
-	public static final PathFilter FILTER_ONLY_OWL_SAMEAS = new PathFilter() {
-		@Override
-		public boolean accept(Path p) {
-			String name = p.getName();
-			return !name.startsWith("_")
-					&& !name.startsWith(".")
-					&& (name.startsWith(TriplesUtils.DIR_PREFIX) || name
-							.endsWith(TriplesUtils.FILE_SUFF_OWL_SAME_AS));
-		}
-	};
-
 	public static final PathFilter FILTER_ONLY_SUBCLASS_SUBPROP_EQ_CLASSPROP = new PathFilter() {
 		@Override
 		public boolean accept(Path p) {
@@ -349,6 +341,105 @@ public class FileUtils {
 					&& !name.startsWith(".")
 					&& (name.startsWith(TriplesUtils.DIR_PREFIX) || name
 							.endsWith(TriplesUtils.FILE_SUFF_OWL2_HAS_KEY));
+		}
+	};
+
+	public static final PathFilter FILTER_ONLY_OWL_INTERSECTION_OF = new PathFilter() {
+		@Override
+		public boolean accept(Path p) {
+			String name = p.getName();
+			return !name.startsWith("_")
+					&& !name.startsWith(".")
+					&& (name.startsWith(TriplesUtils.DIR_PREFIX) || name
+							.endsWith(TriplesUtils.FILE_SUFF_OWL2_INTERSECTION_OF));
+		}
+	};
+
+	public static final PathFilter FILTER_ONLY_OWL_UNION_OF = new PathFilter() {
+		@Override
+		public boolean accept(Path p) {
+			String name = p.getName();
+			return !name.startsWith("_")
+					&& !name.startsWith(".")
+					&& (name.startsWith(TriplesUtils.DIR_PREFIX) || name
+							.endsWith(TriplesUtils.FILE_SUFF_OWL2_UNION_OF));
+		}
+	};
+
+	public static final PathFilter FILTER_ONLY_OWL_ONE_OF = new PathFilter() {
+		@Override
+		public boolean accept(Path p) {
+			String name = p.getName();
+			return !name.startsWith("_")
+					&& !name.startsWith(".")
+					&& (name.startsWith(TriplesUtils.DIR_PREFIX) || name
+							.endsWith(TriplesUtils.FILE_SUFF_OWL2_ONE_OF));
+		}
+	};
+
+	public static final PathFilter FILTER_ONLY_OWL_MAX_CARD = new PathFilter() {
+		@Override
+		public boolean accept(Path p) {
+			String name = p.getName();
+			return !name.startsWith("_")
+					&& !name.startsWith(".")
+					&& (name.startsWith(TriplesUtils.DIR_PREFIX) || name
+							.endsWith(TriplesUtils.FILE_SUFF_OWL2_MAX_CARD_1));
+		}
+	};
+
+	public static final PathFilter FILTER_ONLY_OWL_MAX_Q_CARD = new PathFilter() {
+		@Override
+		public boolean accept(Path p) {
+			String name = p.getName();
+			return !name.startsWith("_")
+					&& !name.startsWith(".")
+					&& (name.startsWith(TriplesUtils.DIR_PREFIX) || name
+							.endsWith(TriplesUtils.FILE_SUFF_OWL2_MAX_Q_CARD_1));
+		}
+	};
+
+	public static final PathFilter FILTER_ONLY_OWL_ON_CLASS = new PathFilter() {
+		@Override
+		public boolean accept(Path p) {
+			String name = p.getName();
+			return !name.startsWith("_")
+					&& !name.startsWith(".")
+					&& (name.startsWith(TriplesUtils.DIR_PREFIX) || name
+							.endsWith(TriplesUtils.FILE_SUFF_OWL2_ON_CLASS));
+		}
+	};
+
+	public static final PathFilter FILTER_ONLY_OWL_TYPE_CLASS = new PathFilter() {
+		@Override
+		public boolean accept(Path p) {
+			String name = p.getName();
+			return !name.startsWith("_")
+					&& !name.startsWith(".")
+					&& (name.startsWith(TriplesUtils.DIR_PREFIX) || name
+							.endsWith(TriplesUtils.FILE_SUFF_OWL_CLASS_TYPE));
+		}
+	};
+
+	public static final PathFilter FILTER_ONLY_OWL_TYPE_DATATYPE_PROP = new PathFilter() {
+		@Override
+		public boolean accept(Path p) {
+			String name = p.getName();
+			return !name.startsWith("_")
+					&& !name.startsWith(".")
+					&& (name.startsWith(TriplesUtils.DIR_PREFIX) || name
+							.endsWith(TriplesUtils.FILE_SUFF_OWL2_DATATYPE_PROP));
+		}
+	};
+
+	public static final PathFilter FILTER_ONLY_OWL_TYPE_OBJTYPE_TYPE = new PathFilter() {
+		@Override
+		public boolean accept(Path p) {
+			String name = p.getName();
+			return !name.startsWith("_")
+					&& !name.startsWith(".")
+					&& (name.startsWith(TriplesUtils.DIR_PREFIX) || name
+							.endsWith(TriplesUtils.FILE_SUFF_OWL2_OBJECTTYPE_PROP));
 		}
 	};
 }

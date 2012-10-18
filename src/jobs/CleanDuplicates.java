@@ -18,35 +18,33 @@ import data.Triple;
 import data.TripleSource;
 
 public class CleanDuplicates extends Configured implements Tool {
-
+	
 	private static Logger log = LoggerFactory.getLogger(CleanDuplicates.class);
 	private int numReduceTasks = 1;
 	private int step = -1;
-
-	public void parseArgs(String[] args) {
-		for (int i = 0; i < args.length; ++i) {
+	
+	public void parseArgs(String[] args) {		
+		for(int i=0;i<args.length; ++i) {
 
 			if (args[i].equalsIgnoreCase("--reducetasks")) {
 				numReduceTasks = Integer.valueOf(args[++i]);
 			}
-
+			
 			if (args[i].equalsIgnoreCase("--step")) {
 				step = Integer.valueOf(args[++i]);
 			}
 		}
-	}
+	}	
 
 	public static void main(String[] args) throws Exception {
-
+		
 		if (args.length < 2) {
-			System.out
-					.println("Usage: CleanDuplicates [input dir] [output dir] [options]");
+			System.out.println("Usage: CleanDuplicates [input dir] [output dir] [options]");
 			System.exit(0);
 		}
-
+		
 		long time = System.currentTimeMillis();
-		int res = ToolRunner.run(new Configuration(), new CleanDuplicates(),
-				args);
+		int res = ToolRunner.run(new Configuration(), new CleanDuplicates(), args);
 		log.info("Execution time: " + (System.currentTimeMillis() - time));
 		System.exit(res);
 	}
@@ -57,7 +55,7 @@ public class CleanDuplicates extends Configured implements Tool {
 		Job job = new Job();
 		job.setJobName("Cleaning duplicates");
 		job.setJarByClass(CleanDuplicates.class);
-
+		
 		job.setInputFormatClass(FilesTriplesReader.class);
 		FilesTriplesReader.addInputPath(job, new Path(args[0]));
 		job.getConfiguration().setInt("reasoner.filterStep", step);
@@ -71,7 +69,7 @@ public class CleanDuplicates extends Configured implements Tool {
 		job.setOutputFormatClass(FilesTriplesWriter.class);
 		FilesTriplesWriter.setOutputPath(job, new Path(args[1]));
 		job.waitForCompletion(true);
-
+		
 		return 0;
 	}
 }

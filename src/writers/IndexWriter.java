@@ -48,14 +48,13 @@ public class IndexWriter extends
 				codec = (CompressionCodec) ReflectionUtils.newInstance(
 						codecClass, context.getConfiguration());
 			}
-
+			
 			NumberFormat format = NumberFormat.getNumberInstance();
 			format.setGroupingUsed(false);
 			format.setMinimumIntegerDigits(5);
 			Path file = getDefaultWorkFile(context, "_" + format.format(chunk));
-			out = SequenceFile.createWriter(
-					FileSystem.get(context.getConfiguration()),
-					context.getConfiguration(), file,
+			out = SequenceFile.createWriter(FileSystem.get(context
+					.getConfiguration()), context.getConfiguration(), file,
 					context.getOutputKeyClass(), context.getOutputValueClass(),
 					compressionType, codec, context);
 		}
@@ -77,7 +76,7 @@ public class IndexWriter extends
 				createNewFile();
 				count = 1;
 			}
-
+			
 			out.append(key, value);
 		}
 

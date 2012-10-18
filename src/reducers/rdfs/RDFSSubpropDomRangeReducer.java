@@ -1,95 +1,116 @@
 package reducers.rdfs;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.hadoop.io.BytesWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import readers.FilesTriplesReader;
-
+import utils.NumberUtils;
 import utils.TriplesUtils;
+import data.Tree.Node;
+import data.Tree.Node.Rule;
+import data.Tree.ResourceNode;
 import data.Triple;
 import data.TripleSource;
 
 public class RDFSSubpropDomRangeReducer extends
-		Reducer<LongWritable, LongWritable, TripleSource, Triple> {
+		Reducer<LongWritable, BytesWritable, TripleSource, Triple> {
 
 	protected static Logger log = LoggerFactory
 			.getLogger(RDFSSubpropDomRangeReducer.class);
 
-	protected static Map<Long, Collection<Long>> domainSchemaTriples = null;
-	protected static Map<Long, Collection<Long>> rangeSchemaTriples = null;
-	protected Set<Long> propURIs = new HashSet<Long>();
+	protected static Map<Long, Collection<ResourceNode>> domainSchemaTriples = null;
+	protected static Map<Long, Collection<ResourceNode>> rangeSchemaTriples = null;
+	protected Set<Long> processedDomainURIs = new HashSet<Long>();
+	protected Set<Long> processedRangeURIs = new HashSet<Long>();
 	protected Set<Long> derivedProps = new HashSet<Long>();
-	private TripleSource source = new TripleSource();
+
+	private TripleSource sourceDomain = new TripleSource();
+	private TripleSource sourceRange = new TripleSource();
+
 	private Triple oTriple = new Triple();
 
 	@Override
-	public void reduce(LongWritable key, Iterable<LongWritable> values,
+	public void reduce(LongWritable key, Iterable<BytesWritable> values,
 			Context context) throws IOException, InterruptedException {
 
 		long uri = key.get();
+		oTriple.setSubject(uri);
 		derivedProps.clear();
+		processedDomainURIs.clear();
+		processedRangeURIs.clear();
+		TripleSource source = null;
 
 		// Get the predicates with a range or domain associated to this URIs
-		propURIs.clear();
-		Iterator<LongWritable> itr = values.iterator();
-		while (itr.hasNext())
-			propURIs.add(itr.next().get());
+		Iterator<BytesWritable> itr = values.iterator();
+		while (itr.hasNext()) {
+			BytesWritable value = itr.next();
+			long toMatch = NumberUtils.decodeLong(value.getBytes(), 1);
 
-		Iterator<Long> itrProp = propURIs.iterator();
-		while (itrProp.hasNext()) {
-			Collection<Long> objects = null;
-			long propURI = itrProp.next();
-			if ((propURI & 0x1) == 1) {
-				objects = rangeSchemaTriples.get(propURI >> 1);
-				context.getCounter("derivation", "range matches").increment(1);
-			} else {
-				objects = domainSchemaTriples.get(propURI >> 1);
-				context.getCounter("derivation", "domain matches").increment(1);
+			Collection<ResourceNode> objects = null;
+			if (value.getBytes()[0] == 1
+					&& !processedRangeURIs.contains(toMatch)) {
+				objects = rangeSchemaTriples.get(toMatch);
+				source = sourceRange;
+				processedRangeURIs.add(toMatch);
+			} else if (value.getBytes()[0] == 0
+					&& !processedDomainURIs.contains(toMatch)) {
+				objects = domainSchemaTriples.get(toMatch);
+				source = sourceDomain;
+				processedDomainURIs.add(toMatch);
 			}
 
 			if (objects != null) {
-				Iterator<Long> itr3 = objects.iterator();
-				while (itr3.hasNext())
-					derivedProps.add(itr3.next());
+				for (ResourceNode object : objects) {
+					if (!derivedProps.contains(object.getResource())) {
+						derivedProps.add(object.getResource());
+						//Proceed with the derivation
+						oTriple.setObject(object.getResource());
+
+						source.clearChildren();
+
+						byte[] history = Arrays.copyOfRange(value.getBytes(), 9, value.getLength());
+						source.addChild(Node.parseFrom(history));
+						source.addChild(object.getHistory());
+						context.write(source, oTriple);
+					}
+				}
 			}
 		}
-
-		// Derive the new statements
-		Iterator<Long> itr2 = derivedProps.iterator();
-		oTriple.setSubject(uri);
-		oTriple.setPredicate(TriplesUtils.RDF_TYPE);
-		oTriple.setObjectLiteral(false);
-		while (itr2.hasNext()) {
-			oTriple.setObject(itr2.next());
-			context.write(source, oTriple);
-		}
-		context.getCounter("RDFS derived triples",
-				"subprop range and domain rule").increment(derivedProps.size());
 	}
 
 	@Override
 	public void setup(Context context) throws IOException {
 
 		if (domainSchemaTriples == null) {
-			domainSchemaTriples = FilesTriplesReader.loadMapIntoMemory(
-					"FILTER_ONLY_DOMAIN_SCHEMA", context);
+			domainSchemaTriples = FilesTriplesReader
+					.loadCompleteMapIntoMemoryWithInfo(
+							"FILTER_ONLY_DOMAIN_SCHEMA", context, false);
 		}
 
 		if (rangeSchemaTriples == null) {
-			rangeSchemaTriples = FilesTriplesReader.loadMapIntoMemory(
-					"FILTER_ONLY_RANGE_SCHEMA", context);
+			rangeSchemaTriples = FilesTriplesReader
+					.loadCompleteMapIntoMemoryWithInfo(
+							"FILTER_ONLY_RANGE_SCHEMA", context, false);
 		}
 
-		source.setDerivation(TripleSource.RDFS_DOMAIN);
-		source.setStep(context.getConfiguration().getInt("reasoner.step", 0));
+		oTriple.setObjectLiteral(false);
+		oTriple.setPredicate(TriplesUtils.RDF_TYPE);
+		sourceDomain.setRule(Rule.RDFS_DOMAIN);
+		sourceDomain.setStep(context.getConfiguration().getInt("reasoner.step",
+				0));
+		sourceRange.setRule(Rule.RDFS_RANGE);
+		sourceRange.setStep(context.getConfiguration().getInt("reasoner.step",
+				0));
 	}
 }

@@ -19,41 +19,39 @@ import data.Triple;
 import data.TripleSource;
 
 public class AddTriplesToInput extends Configured implements Tool {
-
-	private static Logger log = LoggerFactory
-			.getLogger(AddTriplesToInput.class);
+	
+	private static Logger log = LoggerFactory.getLogger(AddTriplesToInput.class);
 	private int numReduceTasks = 1;
 	private int step = -1;
-
-	public void parseArgs(String[] args) {
-		for (int i = 0; i < args.length; ++i) {
+	
+	public void parseArgs(String[] args) {		
+		for(int i=0;i<args.length; ++i) {
 
 			if (args[i].equalsIgnoreCase("--reducetasks")) {
 				numReduceTasks = Integer.valueOf(args[++i]);
 			}
-
+			
 			if (args[i].equalsIgnoreCase("--step")) {
 				step = Integer.valueOf(args[++i]);
 			}
 		}
-	}
+	}	
 
 	public static void main(String[] args) throws Exception {
-
+		
 		if (args.length < 2) {
-			System.out
-					.println("Usage: AddTriplesToInput [dir] [pool] [options]");
+			System.out.println("Usage: AddTriplesToInput [dir] [pool] [options]");
 			System.exit(0);
 		}
-
-		// TODO: Merge dictionary
-		// TODO: assign step
-		// TODO: remove duplicates
-		// TODO: handle synonyms
-
+		
+		//TODO: Merge dictionary
+		//TODO: assign step
+		//TODO: remove duplicates
+		//TODO: handle synonyms
+		
+		
 		long time = System.currentTimeMillis();
-		int res = ToolRunner.run(new Configuration(), new AddTriplesToInput(),
-				args);
+		int res = ToolRunner.run(new Configuration(), new AddTriplesToInput(), args);
 		log.info("Execution time: " + (System.currentTimeMillis() - time));
 		System.exit(res);
 	}
@@ -64,7 +62,7 @@ public class AddTriplesToInput extends Configured implements Tool {
 		Job job = new Job();
 		job.setJobName("Cleaning duplicates");
 		job.setJarByClass(AddTriplesToInput.class);
-
+		
 		job.setInputFormatClass(FilesTriplesReader.class);
 		FilesTriplesReader.addInputPath(job, new Path(args[0]));
 		job.getConfiguration().setInt("reasoner.filterStep", step);
@@ -78,7 +76,7 @@ public class AddTriplesToInput extends Configured implements Tool {
 		job.setOutputFormatClass(FilesTriplesWriter.class);
 		SequenceFileOutputFormat.setOutputPath(job, new Path(args[1]));
 		job.waitForCompletion(true);
-
+		
 		return 0;
 	}
 }

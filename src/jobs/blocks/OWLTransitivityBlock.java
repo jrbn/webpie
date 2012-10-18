@@ -18,6 +18,9 @@ import readers.FilesTriplesReader;
 import readers.MultiFilesReader;
 import reducers.owl.OWLTransitivityReducer;
 import writers.FilesTriplesWriter;
+
+import com.twitter.elephantbird.mapreduce.io.ProtobufWritable;
+
 import data.Triple;
 import data.TripleSource;
 
@@ -59,9 +62,8 @@ public class OWLTransitivityBlock extends ExecutionBlock {
 		FilesTriplesWriter.setOutputPath(job, new Path(transitivityFolder,
 				"dir-level-0"));
 		job.waitForCompletion(true);
-		long newTriples = job.getCounters()
-				.findCounter("OWL derived triples", "new transitivity triples")
-				.getValue();
+		long newTriples = job.getCounters().findCounter("OWL derived triples",
+				"new transitivity triples").getValue();
 		if (newTriples == 0) {
 			fs.delete(transitivityFolder, true);
 			return;
@@ -98,7 +100,7 @@ public class OWLTransitivityBlock extends ExecutionBlock {
 
 			job.setMapperClass(OWLTransitivityMapper.class);
 			job.setMapOutputKeyClass(BytesWritable.class);
-			job.setMapOutputValueClass(BytesWritable.class);
+			job.setMapOutputValueClass(ProtobufWritable.class);
 			job.setPartitionerClass(MyHashPartitioner.class);
 			job.setReducerClass(OWLTransitivityReducer.class);
 
@@ -111,20 +113,19 @@ public class OWLTransitivityBlock extends ExecutionBlock {
 			FilesTriplesWriter.setOutputPath(job, outputFolder);
 			job.waitForCompletion(true);
 
-			long stepNotFilteredDerivation = job
-					.getCounters()
-					.findCounter("org.apache.hadoop.mapred.Task$Counter",
-							"REDUCE_OUTPUT_RECORDS").getValue();
+			long stepNotFilteredDerivation = job.getCounters().findCounter(
+					"org.apache.hadoop.mapred.Task$Counter",
+					"REDUCE_OUTPUT_RECORDS").getValue();
 
 			setNotFilteredDerivation(getNotFilteredDerivation()
 					+ stepNotFilteredDerivation);
 			long stepDerivation = 0;
 			if (stepNotFilteredDerivation > 0) {
-				stepDerivation = deleteDuplicatedTriples(
-						transitivityFolder.toString(), outputFolder.toString(),
+				stepDerivation = deleteDuplicatedTriples(transitivityFolder
+						.toString(), outputFolder.toString(),
 						"FILTER_ONLY_HIDDEN", new Path(transitivityFolder,
-								"dir-level-" + level).toString(),
-						Math.max(1, (int) Math.pow(2, level - 1))
+								"dir-level-" + level).toString(), Math.max(1,
+								(int) Math.pow(2, level - 1))
 								+ executionStep - 1, true, false, true);
 			}
 			transitivityDerivation += stepDerivation;

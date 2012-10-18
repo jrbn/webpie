@@ -32,7 +32,7 @@ public class OWL2HasKey2Reducer extends
 			Context context) throws IOException, InterruptedException {
 		map.clear();
 
-		for (BytesWritable value : values) {
+		for(BytesWritable value : values) {
 			long chain = NumberUtils.decodeLong(value.getBytes(), 8);
 			if (!map.containsKey(chain)) {
 				map.put(chain, new ArrayList<Long>());
@@ -42,16 +42,18 @@ public class OWL2HasKey2Reducer extends
 			col.add(NumberUtils.decodeLong(value.getBytes(), 0));
 		}
 
-		for (ArrayList<Long> entry : map.values()) {
+
+
+		for(ArrayList<Long> entry : map.values()) {
 			long smallestEntity = Long.MAX_VALUE;
-			for (long entity : entry) {
+			for(long entity : entry) {
 				if (entity < smallestEntity) {
 					smallestEntity = entity;
 				}
 			}
 
 			oValue.setSubject(smallestEntity);
-			for (long entity : entry) {
+			for(long entity : entry) {
 				if (entity > smallestEntity) {
 					oValue.setObject(entity);
 					context.write(oKey, oValue);
@@ -63,7 +65,7 @@ public class OWL2HasKey2Reducer extends
 	@Override
 	public void setup(Context context) throws IOException {
 		oKey.setStep(context.getConfiguration().getInt("reasoner.step", -1));
-		oKey.setDerivation(TripleSource.OWL2_RULE_HASKEY);
+		//FIXME: oKey.setDerivation(TripleSource.OWL2_RULE_HASKEY);
 		oValue.setPredicate(TriplesUtils.OWL_SAME_AS);
 	}
 }

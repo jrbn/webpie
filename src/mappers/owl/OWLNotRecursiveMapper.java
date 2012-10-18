@@ -4,19 +4,22 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.apache.hadoop.io.BytesWritable;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import readers.FilesTriplesReader;
-
 import utils.NumberUtils;
+
+import com.twitter.elephantbird.mapreduce.io.ProtobufWritable;
+
+import data.Tree.ResourceNode;
 import data.Triple;
 import data.TripleSource;
 
-public class OWLNotRecursiveMapper extends
-		Mapper<TripleSource, Triple, BytesWritable, LongWritable> {
+public class OWLNotRecursiveMapper
+		extends
+		Mapper<TripleSource, Triple, BytesWritable, ProtobufWritable<ResourceNode>> {
 
 	protected static Logger log = LoggerFactory
 			.getLogger(OWLNotRecursiveMapper.class);
@@ -29,6 +32,11 @@ public class OWLNotRecursiveMapper extends
 	private BytesWritable key = new BytesWritable(bKeys);
 	private int previousDerivation = -1;
 
+	ProtobufWritable<ResourceNode> oValueContainer = ProtobufWritable
+			.newInstance(ResourceNode.class);
+	ResourceNode.Builder oValue = ResourceNode.newBuilder();
+
+	@Override
 	public void map(TripleSource key, Triple value, Context context)
 			throws IOException, InterruptedException {
 
@@ -48,7 +56,11 @@ public class OWLNotRecursiveMapper extends
 			bKeys[0] = 0;
 			NumberUtils.encodeLong(bKeys, 1, value.getSubject());
 			NumberUtils.encodeLong(bKeys, 9, value.getPredicate());
-			context.write(this.key, new LongWritable(value.getObject()));
+
+			oValue.setResource(value.getObject());
+			oValue.setHistory(key.getHistory());
+			oValueContainer.set(oValue.build());
+			context.write(this.key, oValueContainer);
 		}
 
 		if (schemaInverseFunctionalProperties.containsKey(value.getPredicate())
@@ -60,10 +72,14 @@ public class OWLNotRecursiveMapper extends
 				return;
 
 			// Set as key a particular flag plus the predicate
-			bKeys[0] = 0;
+			bKeys[0] = 1;
 			NumberUtils.encodeLong(bKeys, 1, value.getObject());
 			NumberUtils.encodeLong(bKeys, 9, value.getPredicate());
-			context.write(this.key, new LongWritable(value.getSubject()));
+
+			oValue.setResource(value.getSubject());
+			oValue.setHistory(key.getHistory());
+			oValueContainer.set(oValue.build());
+			context.write(this.key, oValueContainer);
 		}
 
 		if (schemaSymmetricProperties.containsKey(value.getPredicate())) {
@@ -76,7 +92,11 @@ public class OWLNotRecursiveMapper extends
 			bKeys[0] = 2;
 			NumberUtils.encodeLong(bKeys, 1, value.getSubject());
 			NumberUtils.encodeLong(bKeys, 9, value.getObject());
-			context.write(this.key, new LongWritable(value.getPredicate()));
+
+			oValue.setResource(value.getPredicate());
+			oValue.setHistory(key.getHistory());
+			oValueContainer.set(oValue.build());
+			context.write(this.key, oValueContainer);
 		}
 
 		if (schemaInverseOfProperties.containsKey(value.getPredicate())) {
@@ -89,10 +109,15 @@ public class OWLNotRecursiveMapper extends
 			bKeys[0] = 3;
 			NumberUtils.encodeLong(bKeys, 1, value.getSubject());
 			NumberUtils.encodeLong(bKeys, 9, value.getObject());
-			context.write(this.key, new LongWritable(value.getPredicate()));
+
+			oValue.setResource(value.getPredicate());
+			oValue.setHistory(key.getHistory());
+			oValueContainer.set(oValue.build());
+			context.write(this.key, oValueContainer);
 		}
 	}
 
+	@Override
 	protected void setup(Context context) throws IOException {
 		previousDerivation = context.getConfiguration().getInt(
 				"reasoner.previousStep", -1);

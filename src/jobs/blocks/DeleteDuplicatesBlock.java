@@ -10,13 +10,12 @@ public class DeleteDuplicatesBlock extends ExecutionBlock {
 	@Override
 	public void performJobs(int executionStep) throws IOException,
 			InterruptedException, ClassNotFoundException {
-
+		
 		if (getStrategy() != STRATEGY_CLEAN_DUPL_ALWAYS) {
 			setFilteredDerivation(deleteDuplicatedTriples(pool.toString(),
-					pool.toString() + OWL_NOT_FILTERED_DIR,
-					"FILTER_ONLY_HIDDEN", pool.toString() + OWL_OUTPUT_DIR
-							+ "/dir-final-derivation", getFilterFromStep(),
-					true, false, true));
+					pool.toString() + OWL_NOT_FILTERED_DIR, "FILTER_ONLY_HIDDEN", pool.toString() + OWL_OUTPUT_DIR
+							+ "/dir-final-derivation", getFilterFromStep(), true, false,
+					true));
 		}
 		FileSystem fs = FileSystem.get(conf);
 		fs.delete(new Path(pool + ExecutionBlock.OWL_NOT_FILTERED_DIR), true);

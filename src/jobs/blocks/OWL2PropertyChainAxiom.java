@@ -34,8 +34,8 @@ public class OWL2PropertyChainAxiom extends ExecutionBlock {
 
 		// Read the triples and extract the ones which might produce something
 		Job job = getNewJob(
-				"OWL2 reasoner: extract triples for property axiom",
-				pool.toString(), "FILTER_ONLY_HIDDEN");
+				"OWL2 reasoner: extract triples for property axiom", pool
+						.toString(), "FILTER_ONLY_HIDDEN");
 		job.getConfiguration().setInt("reasoner.currentExecution",
 				getPreviousExecution());
 		job.setMapperClass(OWL2PropChainExtractMapper.class);
@@ -55,8 +55,9 @@ public class OWL2PropertyChainAxiom extends ExecutionBlock {
 		while (shouldContinue) {
 			job = new Job();
 			job.setJarByClass(OWL2PropertyChainAxiom.class);
-			job.setJobName("OWL2 reasoner: calculate transitivity on triples. Step "
-					+ ++step);
+			job
+					.setJobName("OWL2 reasoner: calculate transitivity on triples. Step "
+							+ ++step);
 			job.getConfiguration().setInt("step", step);
 			job.setInputFormatClass(SequenceFileInputFormat.class);
 			SequenceFileInputFormat.setInputPathFilter(job,
@@ -91,17 +92,16 @@ public class OWL2PropertyChainAxiom extends ExecutionBlock {
 		SequenceFileInputFormat.addInputPath(job, currentPath);
 		job.getConfiguration().setInt("reasoner.derivationStep", executionStep);
 		job.setNumReduceTasks(numReduceTasks);
-		job.setMapperClass(OWL2PropChainCopyMapper.class);
+		job.setMapperClass(OWL2PropChainCopyMapper.class);		
 		job.setMapOutputKeyClass(Triple.class);
 		job.setMapOutputValueClass(NullWritable.class);
 		job.setReducerClass(OWL2PropChainCopyReducer.class);
 		configureOutputJob(job, pool.toString() + OWL_OUTPUT_DIR
 				+ "/dir-owl2-propaxiom-" + executionStep);
 		job.waitForCompletion(true);
-		setFilteredDerivation(job
-				.getCounters()
-				.findCounter("org.apache.hadoop.mapred.Task$Counter",
-						"REDUCE_OUTPUT_RECORDS").getValue());
+		setFilteredDerivation(job.getCounters().findCounter(
+				"org.apache.hadoop.mapred.Task$Counter",
+				"REDUCE_OUTPUT_RECORDS").getValue());
 
 		fs.delete(poolPath, true);
 	}
