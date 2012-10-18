@@ -1,0 +1,66 @@
+package tutorial;
+
+option java_package = "data";
+
+message Node {
+
+ enum Rule {
+ 	INPUT = 0;
+ 	RDFS_SUBPROP_INHERIT = 1; 	
+	RDFS_SUBPROP_TRANS = 2;
+	RDFS_DOMAIN = 3;
+	RDFS_RANGE = 4;
+	RDFS_SUBCLASS_INHERIT = 5;
+	RDFS_SUBCLASS_TRANS = 6;
+	RDFS_MEMBERSHIP_PROP = 24;
+	RDFS_DATATYPE = 25;
+	OWL_FUNCTIONAL = 8;
+	OWL_INV_FUNCTIONAL = 9;
+	OWL_SYMMETRIC = 10;
+	OWL_INVERSE_OF = 11;
+	OWL_EQ_CLASSES = 12;
+	OWL_EQ_PROPERTIES = 13;
+	OWL_SUBCLASS = 14;
+	OWL_SUBPROP = 15;
+	OWL_HAS_VALUE1 = 16;
+	OWL_HAS_VALUE2 = 17;	
+	OWL_SOME_VALUES = 18;
+	OWL_ALL_VALUES = 19;	
+	OWL_TRANS = 20;
+	OWL_RULE_16 = 21;
+	OWL2_RULE_PROPAXIOM = 22;
+	OWL2_RULE_HASKEY = 23;
+ }
+
+ required int32 step = 1;
+ optional Rule rule = 2 [ default = INPUT ];
+ repeated Node children = 3;
+ optional int64 subject = 4 [ default = 0 ];
+ optional int64 predicate = 5 [ default = 0 ];
+ optional int64 object = 6 [ default = 0 ];
+}
+
+message ResourceNode {
+ required int64 resource = 1;
+ optional Node history = 2;
+ optional int32 step = 3;
+}
+
+message ByteResourceNode {
+ required int32 id = 1;
+ required int64 resource = 2;
+ optional Node history = 3;
+}
+
+message ByteTwoResourcesNode {
+ required int32 id = 1;
+ required int64 resource1 = 2;
+ optional int64 resource2 = 3;
+ optional Node history = 4;
+}
+
+message TwoResourcesNode { 
+ required int64 resource1 = 1;
+ required int64 resource2 = 2;
+ optional Node history = 3;
+}
